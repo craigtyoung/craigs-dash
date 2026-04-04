@@ -932,6 +932,69 @@
     .of-grid { grid-template-columns: 1fr; }
     .of-input.full, .of-select.full { grid-column: 1; }
   }
+  /* ── BOTTOM NAV ── */
+  .cd-bnav {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 300;
+    background: rgba(12,11,20,0.96);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(200,190,230,0.12);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .cd-bnav-btn {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0.2rem; padding: 0.6rem 0.25rem;
+    background: none; border: none; cursor: pointer;
+    color: rgba(237,234,248,0.45);
+    transition: color 0.18s; min-height: 56px;
+  }
+  .cd-bnav-btn.active { color: var(--purple-bright); }
+  .cd-bnav-icon { font-size: 1.3rem; line-height: 1; }
+  .cd-bnav-label { font-family: var(--font-mono); font-size: 0.52rem; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* ── TODAY TAB ── */
+  .today-header { margin-bottom: 1.5rem; }
+  .today-date-line { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--purple-bright); margin-bottom: 0.4rem; }
+  .today-greeting-line { font-family: var(--font-display); font-size: 2rem; font-weight: 300; color: var(--text-primary); }
+  .today-progress-wrap { margin-bottom: 1.5rem; }
+  .today-progress-bar { height: 6px; background: rgba(200,190,230,0.1); border-radius: 3px; overflow: hidden; margin-top: 0.5rem; }
+  .today-progress-fill { height: 100%; background: linear-gradient(90deg, var(--purple-mid), var(--teal)); border-radius: 3px; transition: width 0.4s ease; }
+  .today-section-label { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); margin: 1.2rem 0 0.5rem; }
+  .today-item {
+    display: flex; align-items: center; gap: 0.85rem;
+    padding: 0.8rem 1rem; margin-bottom: 0.4rem;
+    background: var(--bg-card); border: 1px solid var(--border-subtle);
+    border-radius: 12px; cursor: pointer; transition: all 0.18s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .today-item:hover { border-color: var(--border-glow); }
+  .today-item.done { opacity: 0.55; }
+  .today-item.done .today-check { background: var(--purple-mid); border-color: var(--purple-mid); }
+  .today-item.done .today-item-name { text-decoration: line-through; color: var(--text-tertiary); }
+  .today-check {
+    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+    border: 1.5px solid var(--border-glow); background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; color: white; transition: all 0.18s;
+  }
+  .today-item-info { flex: 1; min-width: 0; }
+  .today-item-name { font-size: 0.92rem; color: var(--text-primary); }
+  .today-item-sub { font-size: 0.72rem; color: var(--text-tertiary); font-family: var(--font-mono); margin-top: 0.1rem; }
+  .today-idea-btn {
+    width: 100%; padding: 0.9rem; margin-top: 1rem;
+    background: var(--purple-soft); border: 1px solid var(--border-glow);
+    border-radius: 12px; color: var(--purple-bright); font-family: var(--font-body);
+    font-size: 0.9rem; cursor: pointer; transition: all 0.18s;
+  }
+  .today-idea-btn:hover { background: rgba(196,161,255,0.2); }
+  .today-summary-btn {
+    width: 100%; padding: 0.9rem; margin-top: 0.6rem;
+    background: var(--teal-soft); border: 1px solid var(--teal-glow);
+    border-radius: 12px; color: var(--teal); font-family: var(--font-body);
+    font-size: 0.9rem; cursor: pointer; transition: all 0.18s;
+  }
+
   @media (max-width: 600px) {
     .metrics-grid { grid-template-columns: 1fr; }
     .tab-nav-inner { padding: 0 0.75rem; gap: 0; }
@@ -942,6 +1005,8 @@
     .page { padding: 1.25rem 1rem 5rem; }
     .hero-greeting { font-size: clamp(2.2rem, 8vw, 3.5rem); }
     .projects-grid { grid-template-columns: 1fr; }
+    .cd-bnav { display: flex; }
+    .tab-nav { display: none; }
   }
 
   /* ─── PROJECTS TAB ─── */
@@ -1204,7 +1269,8 @@
   <div class="tab-nav-inner">
     <span class="tab-brand">Craig Young</span>
     <div class="tab-links">
-      <button class="tab-link active" onclick="showTab('dashboard',this)">Dashboard</button>
+      <button class="tab-link active" onclick="showTab('today',this)">Today</button>
+      <button class="tab-link" onclick="showTab('dashboard',this)">Dashboard</button>
       <button class="tab-link" onclick="showTab('outreach',this)">Outreach</button>
       <button class="tab-link" onclick="showTab('health',this)">Health</button>
       <button class="tab-link" onclick="showTab('tasks',this)">Tasks</button>
@@ -1214,6 +1280,25 @@
       <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark mode">☽</button>
     </div>
   </div>
+</nav>
+
+<!-- ═══ BOTTOM NAV (mobile) ═══ -->
+<nav class="cd-bnav">
+  <button class="cd-bnav-btn active" id="cdbnav-today" onclick="cdBnav('today',this)">
+    <span class="cd-bnav-icon">🏠</span><span class="cd-bnav-label">Today</span>
+  </button>
+  <button class="cd-bnav-btn" id="cdbnav-outreach" onclick="cdBnav('outreach',this)">
+    <span class="cd-bnav-icon">📬</span><span class="cd-bnav-label">Outreach</span>
+  </button>
+  <button class="cd-bnav-btn" id="cdbnav-ideas" onclick="cdBnav('ideas',this)">
+    <span class="cd-bnav-icon">💡</span><span class="cd-bnav-label">Ideas</span>
+  </button>
+  <button class="cd-bnav-btn" id="cdbnav-health" onclick="cdBnav('health',this)">
+    <span class="cd-bnav-icon">❤️</span><span class="cd-bnav-label">Health</span>
+  </button>
+  <button class="cd-bnav-btn" id="cdbnav-more" onclick="cdBnav('dashboard',this)">
+    <span class="cd-bnav-icon">⋯</span><span class="cd-bnav-label">More</span>
+  </button>
 </nav>
 
 <!-- ═══ CONNECTION HUB ═══ -->
@@ -1248,9 +1333,57 @@
 </div>
 
 <!-- ═══════════════════════════════════════ -->
+<!-- TAB 0: TODAY                             -->
+<!-- ═══════════════════════════════════════ -->
+<div id="tab-today" class="tab-pane active">
+<div class="page" style="max-width:600px;margin:0 auto;padding:1.5rem 1rem 6rem;">
+
+  <div class="today-header">
+    <div class="today-date-line" id="today-tab-date"></div>
+    <div class="today-greeting-line" id="today-tab-greeting"></div>
+  </div>
+
+  <!-- Progress -->
+  <div class="today-progress-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-tertiary);letter-spacing:0.08em;">TODAY'S PROGRESS</span>
+      <span id="today-progress-label" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--purple-bright);">0 / 0</span>
+    </div>
+    <div class="today-progress-bar"><div class="today-progress-fill" id="today-progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- Supplements -->
+  <div class="today-section-label">☀️ Morning Supplements</div>
+  <div id="today-morning-supps"></div>
+
+  <div class="today-section-label">☀️ Breakfast</div>
+  <div id="today-breakfast-supps"></div>
+
+  <div class="today-section-label">🌤️ Lunch</div>
+  <div id="today-lunch-supps"></div>
+
+  <div class="today-section-label">🌙 Dinner</div>
+  <div id="today-dinner-supps"></div>
+
+  <div class="today-section-label">🌙 Bedtime</div>
+  <div id="today-bedtime-supps"></div>
+
+  <!-- Daily habits -->
+  <div class="today-section-label">⚡ Daily Habits</div>
+  <div id="today-habits"></div>
+
+  <!-- Quick actions -->
+  <button class="today-idea-btn" onclick="cdBnav('ideas', document.getElementById('cdbnav-ideas'))">💡 Capture an Idea</button>
+  <button class="today-summary-btn" id="today-summary-btn" onclick="generateDailySummary()">✦ Generate Daily Summary → ACE</button>
+  <div id="today-summary-status" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--teal);text-align:center;margin-top:0.5rem;min-height:1.2em;"></div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
 <!-- TAB 1: DASHBOARD                        -->
 <!-- ═══════════════════════════════════════ -->
-<div id="tab-dashboard" class="tab-pane active">
+<div id="tab-dashboard" class="tab-pane">
 <div class="dashboard">
 
   <section class="hero">
@@ -2916,6 +3049,10 @@
           localStorage.setItem('ace_supplements', JSON.stringify(data['ace_supplements']));
           if (typeof renderSupplements === 'function') renderSupplements();
         }
+        if (data['cd_today'] && (!_aceKeyWriteTime['cd_today'] || now - _aceKeyWriteTime['cd_today'] > 5000)) {
+          localStorage.setItem('cd_today', JSON.stringify(data['cd_today']));
+          if (typeof renderTodayTab === 'function') renderTodayTab();
+        }
       })
       .catch(() => {});
   }
@@ -3849,6 +3986,151 @@
   function lyraKeydown(e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendLyraMessage(); }
   }
+
+  // ── TODAY TAB ──
+
+  function cdBnav(tabId, btn) {
+    document.querySelectorAll('.cd-bnav-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    showTab(tabId, null);
+    if (tabId === 'today') renderTodayTab();
+  }
+
+  const TODAY_SUPPS = [
+    { id:'creatine',  name:'Creatine',        dose:'5g in morning drink',      timing:'Morning Drink', emoji:'💪' },
+    { id:'d3',        name:'Vitamin D3',       dose:'2000–4000 IU · with food', timing:'Breakfast',     emoji:'☀️' },
+    { id:'k2',        name:'Vitamin K2',       dose:'100–200 mcg · with food',  timing:'Breakfast',     emoji:'🦴' },
+    { id:'multivit',  name:'Multivitamin',     dose:'1 serving · with food',    timing:'Breakfast',     emoji:'🌿' },
+    { id:'vitc1',     name:'Vitamin C (AM)',   dose:'500mg · with food',        timing:'Breakfast',     emoji:'🍊' },
+    { id:'bcomplex',  name:'B Complex',        dose:'1 serving · WITH food',    timing:'Breakfast',     emoji:'⚡' },
+    { id:'biok',      name:'Bio-K+ Probiotic', dose:'1 serving · with food',    timing:'Breakfast',     emoji:'🦠' },
+    { id:'zinc',      name:'Zinc',             dose:'15–25mg · with food',      timing:'Lunch',         emoji:'🛡️' },
+    { id:'vitc2',     name:'Vitamin C (PM)',   dose:'500mg · with food',        timing:'Lunch',         emoji:'🍊' },
+    { id:'omega3',    name:'Omega-3 + CoQ10',  dose:'Per label · with food',    timing:'Dinner',        emoji:'🐟' },
+    { id:'magnesium', name:'Magnesium',        dose:'200–400mg (glycinate)',     timing:'Bedtime',       emoji:'🌙' },
+  ];
+
+  const TODAY_HABITS = [
+    { id:'meditation',  name:'Meditation',    sub:'10 min',      emoji:'🧘' },
+    { id:'breathwork',  name:'Breathwork',    sub:'10 min',      emoji:'🌬️' },
+    { id:'piano',       name:'Piano',         sub:'Any time',    emoji:'🎹' },
+    { id:'cubase',      name:'Cubase',        sub:'Any time',    emoji:'🎛️' },
+    { id:'outreach',    name:'Outreach',      sub:'Reach out to someone', emoji:'📬' },
+    { id:'exercise',    name:'Exercise',      sub:'Any movement', emoji:'🏃' },
+  ];
+
+  function todayKey() { return new Date().toLocaleDateString('en-CA'); }
+
+  function loadTodayData() {
+    try { return JSON.parse(localStorage.getItem('cd_today') || '{}'); } catch { return {}; }
+  }
+
+  function saveTodayData(d) {
+    localStorage.setItem('cd_today', JSON.stringify(d));
+    syncToServer({ cd_today: d });
+  }
+
+  function toggleTodayItem(id) {
+    const key = todayKey();
+    const d = loadTodayData();
+    if (!d[key]) d[key] = {};
+    d[key][id] = !d[key][id];
+    saveTodayData(d);
+    renderTodayTab();
+  }
+
+  function renderTodayTab() {
+    const key = todayKey();
+    const d = loadTodayData();
+    const today = d[key] || {};
+
+    // Date + greeting
+    const now = new Date();
+    const h = now.getHours();
+    const greet = h < 12 ? 'Good morning.' : h < 17 ? 'Good afternoon.' : 'Good evening.';
+    const dateStr = now.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+    const dateEl = document.getElementById('today-tab-date');
+    const greetEl = document.getElementById('today-tab-greeting');
+    if (dateEl) dateEl.textContent = dateStr;
+    if (greetEl) greetEl.textContent = greet;
+
+    // Progress
+    const allIds = [...TODAY_SUPPS.map(s=>s.id), ...TODAY_HABITS.map(h=>h.id)];
+    const done = allIds.filter(id => today[id]).length;
+    const pct = allIds.length ? Math.round((done/allIds.length)*100) : 0;
+    const fill = document.getElementById('today-progress-fill');
+    const label = document.getElementById('today-progress-label');
+    if (fill) fill.style.width = pct + '%';
+    if (label) label.textContent = done + ' / ' + allIds.length;
+
+    // Render supplement groups
+    const groups = { 'Morning Drink':'today-morning-supps', 'Breakfast':'today-breakfast-supps', 'Lunch':'today-lunch-supps', 'Dinner':'today-dinner-supps', 'Bedtime':'today-bedtime-supps' };
+    Object.entries(groups).forEach(([timing, elId]) => {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      const supps = TODAY_SUPPS.filter(s => s.timing === timing);
+      el.innerHTML = supps.map(s => `
+        <div class="today-item${today[s.id]?' done':''}" onclick="toggleTodayItem('${s.id}')">
+          <div class="today-check">${today[s.id]?'✓':''}</div>
+          <div class="today-item-info">
+            <div class="today-item-name">${s.emoji} ${s.name}</div>
+            <div class="today-item-sub">${s.dose}</div>
+          </div>
+        </div>`).join('');
+    });
+
+    // Habits
+    const habitsEl = document.getElementById('today-habits');
+    if (habitsEl) {
+      habitsEl.innerHTML = TODAY_HABITS.map(h => `
+        <div class="today-item${today[h.id]?' done':''}" onclick="toggleTodayItem('${h.id}')">
+          <div class="today-check">${today[h.id]?'✓':''}</div>
+          <div class="today-item-info">
+            <div class="today-item-name">${h.emoji} ${h.name}</div>
+            <div class="today-item-sub">${h.sub}</div>
+          </div>
+        </div>`).join('');
+    }
+  }
+
+  async function generateDailySummary() {
+    const btn = document.getElementById('today-summary-btn');
+    const status = document.getElementById('today-summary-status');
+    if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+
+    const key = todayKey();
+    const d = loadTodayData();
+    const today = d[key] || {};
+
+    const suppsDone = TODAY_SUPPS.filter(s => today[s.id]).map(s => s.name);
+    const suppsMissed = TODAY_SUPPS.filter(s => !today[s.id]).map(s => s.name);
+    const habitsDone = TODAY_HABITS.filter(h => today[h.id]).map(h => h.name);
+    const habitsMissed = TODAY_HABITS.filter(h => !today[h.id]).map(h => h.name);
+    const allIds = [...TODAY_SUPPS.map(s=>s.id), ...TODAY_HABITS.map(h=>h.id)];
+    const done = allIds.filter(id => today[id]).length;
+    const pct = allIds.length ? Math.round((done/allIds.length)*100) : 0;
+
+    const summary = {
+      date: key,
+      completion_pct: pct,
+      supplements_taken: suppsDone,
+      supplements_missed: suppsMissed,
+      habits_done: habitsDone,
+      habits_missed: habitsMissed,
+      generated_at: new Date().toISOString(),
+    };
+
+    try {
+      await syncToServer({ cd_daily_summary: summary });
+      if (status) status.textContent = '✓ Summary saved to ACE — visible at next /start';
+    } catch(e) {
+      if (status) status.textContent = 'Save failed — try again';
+    }
+    if (btn) { btn.disabled = false; btn.textContent = '✦ Generate Daily Summary → ACE'; }
+  }
+
+  // Init today tab
+  renderTodayTab();
 
   // ── Cloud sync init ──
   syncFromServer();
