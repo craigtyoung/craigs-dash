@@ -950,8 +950,8 @@
     transition: color 0.18s; min-height: 56px;
   }
   .cd-bnav-btn.active { color: var(--purple-bright); }
-  .cd-bnav-icon { font-size: 1.3rem; line-height: 1; }
-  .cd-bnav-label { font-family: var(--font-mono); font-size: 0.52rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  .cd-bnav-icon { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .cd-bnav-label { font-family: var(--font-mono); font-size: 0.5rem; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.15rem; }
 
   /* ── TODAY TAB ── */
   .today-header { margin-bottom: 1.5rem; }
@@ -1007,6 +1007,8 @@
     .projects-grid { grid-template-columns: 1fr; }
     .cd-bnav { display: flex; }
     .tab-nav { display: none; }
+    body { overflow-x: hidden; }
+    .tab-pane, .page { max-width: 100vw; overflow-x: hidden; }
   }
 
   /* ─── PROJECTS TAB ─── */
@@ -1285,19 +1287,24 @@
 <!-- ═══ BOTTOM NAV (mobile) ═══ -->
 <nav class="cd-bnav">
   <button class="cd-bnav-btn active" id="cdbnav-today" onclick="cdBnav('today',this)">
-    <span class="cd-bnav-icon">🏠</span><span class="cd-bnav-label">Today</span>
+    <svg class="cd-bnav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    <span class="cd-bnav-label">Today</span>
   </button>
   <button class="cd-bnav-btn" id="cdbnav-outreach" onclick="cdBnav('outreach',this)">
-    <span class="cd-bnav-icon">📬</span><span class="cd-bnav-label">Outreach</span>
+    <svg class="cd-bnav-icon" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+    <span class="cd-bnav-label">Outreach</span>
   </button>
   <button class="cd-bnav-btn" id="cdbnav-ideas" onclick="cdBnav('ideas',this)">
-    <span class="cd-bnav-icon">💡</span><span class="cd-bnav-label">Ideas</span>
+    <svg class="cd-bnav-icon" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>
+    <span class="cd-bnav-label">Ideas</span>
   </button>
   <button class="cd-bnav-btn" id="cdbnav-health" onclick="cdBnav('health',this)">
-    <span class="cd-bnav-icon">❤️</span><span class="cd-bnav-label">Health</span>
+    <svg class="cd-bnav-icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    <span class="cd-bnav-label">Health</span>
   </button>
   <button class="cd-bnav-btn" id="cdbnav-more" onclick="cdBnav('dashboard',this)">
-    <span class="cd-bnav-icon">⋯</span><span class="cd-bnav-label">More</span>
+    <svg class="cd-bnav-icon" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+    <span class="cd-bnav-label">More</span>
   </button>
 </nav>
 
