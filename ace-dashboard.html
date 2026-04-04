@@ -1008,7 +1008,8 @@
     .cd-bnav { display: flex; }
     .tab-nav { display: none; }
     .conn-hub { display: none; }
-    body { overflow-x: hidden; }
+    body { overflow-x: hidden; padding-top: 0; }
+    .dashboard { padding: 1.25rem 1rem 6rem; }
     .tab-pane, .page { max-width: 100vw; overflow-x: hidden; }
   }
 
@@ -1287,6 +1288,10 @@
 
 <!-- ═══ BOTTOM NAV (mobile) ═══ -->
 <nav class="cd-bnav">
+  <button class="cd-bnav-btn active" id="cdbnav-dashboard" onclick="cdBnav('dashboard',this)">
+    <svg class="cd-bnav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="cd-bnav-label">Dash</span>
+  </button>
   <button class="cd-bnav-btn" id="cdbnav-today" onclick="cdBnav('today',this)">
     <svg class="cd-bnav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
     <span class="cd-bnav-label">Today</span>
@@ -1295,17 +1300,13 @@
     <svg class="cd-bnav-icon" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
     <span class="cd-bnav-label">Outreach</span>
   </button>
-  <button class="cd-bnav-btn" id="cdbnav-ideas" onclick="cdBnav('ideas',this)">
-    <svg class="cd-bnav-icon" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>
-    <span class="cd-bnav-label">Ideas</span>
-  </button>
   <button class="cd-bnav-btn" id="cdbnav-health" onclick="cdBnav('health',this)">
     <svg class="cd-bnav-icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
     <span class="cd-bnav-label">Health</span>
   </button>
-  <button class="cd-bnav-btn active" id="cdbnav-dashboard" onclick="cdBnav('dashboard',this)">
-    <svg class="cd-bnav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-    <span class="cd-bnav-label">Dash</span>
+  <button class="cd-bnav-btn" id="cdbnav-ideas" onclick="cdBnav('ideas',this)">
+    <svg class="cd-bnav-icon" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>
+    <span class="cd-bnav-label">Ideas</span>
   </button>
   <button class="cd-bnav-btn" id="cdbnav-more" onclick="toggleCdMore()">
     <svg class="cd-bnav-icon" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
