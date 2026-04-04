@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0c0b14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ACE">
+<meta name="apple-mobile-web-app-title" content="Craig's Dash">
 <link rel="apple-touch-icon" href="/icon-192.svg">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=DM+Sans:wght@200;300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap');
@@ -934,7 +934,14 @@
   }
   @media (max-width: 600px) {
     .metrics-grid { grid-template-columns: 1fr; }
-    .tab-nav-inner { padding: 0 1.25rem; }
+    .tab-nav-inner { padding: 0 0.75rem; gap: 0; }
+    .tab-brand { font-size: 0.6rem; letter-spacing: 0.15em; margin-right: 0.5rem; white-space: nowrap; }
+    .tab-links { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; flex-wrap: nowrap; }
+    .tab-links::-webkit-scrollbar { display: none; }
+    .tab-link { font-size: 0.7rem; padding: 0.85rem 0.65rem; white-space: nowrap; }
+    .page { padding: 1.25rem 1rem 5rem; }
+    .hero-greeting { font-size: clamp(2.2rem, 8vw, 3.5rem); }
+    .projects-grid { grid-template-columns: 1fr; }
   }
 
   /* ─── PROJECTS TAB ─── */
@@ -1195,7 +1202,7 @@
 <!-- ═══ TAB NAVIGATION ═══ -->
 <nav class="tab-nav">
   <div class="tab-nav-inner">
-    <span class="tab-brand">ACE</span>
+    <span class="tab-brand">Craig Young</span>
     <div class="tab-links">
       <button class="tab-link active" onclick="showTab('dashboard',this)">Dashboard</button>
       <button class="tab-link" onclick="showTab('outreach',this)">Outreach</button>
