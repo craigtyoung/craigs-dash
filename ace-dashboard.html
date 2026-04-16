@@ -61,8 +61,8 @@
     --border-subtle: rgba(90, 65, 180, 0.11);
     --border-glow: rgba(90, 65, 180, 0.24);
     --text-primary: #1a1630;
-    --text-secondary: #3e3a60;
-    --text-tertiary: #8480a8;
+    --text-secondary: #2d2952;
+    --text-tertiary: #5f5b82;
     --purple-bright: #6d28d9;
     --purple-mid: #7c3aed;
     --purple-deep: #5b21b6;
@@ -112,8 +112,8 @@
   body.light html { scrollbar-color: rgba(90,65,180,0.2) transparent; }
 
   /* ── Light mode: hardcoded color fixes ── */
-  body.light .hero-clock-ampm { color: rgba(235,233,255,0.75); }
-  body.light .slabel { color: var(--text-tertiary); }
+  body.light .hero-clock-ampm { color: var(--purple-mid); }
+  body.light .slabel { color: var(--text-secondary); }
   body.light .habit-history-label { color: var(--text-tertiary); }
   body.light .vision-title { color: var(--text-primary); }
   body.light .vision-text { color: var(--text-secondary); }
@@ -126,7 +126,7 @@
 
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: rgba(180,170,210,0.08) transparent; }
-  body { font-family: var(--font-body); background: var(--bg-deep); color: var(--text-primary); line-height: 1.6; overflow-x: hidden; padding-top: 80px; transition: background 0.3s, color 0.3s; }
+  body { font-family: var(--font-body); background: var(--bg-deep); color: var(--text-primary); line-height: 1.6; overflow-x: hidden; padding-top: 56px; transition: background 0.3s, color 0.3s; }
 
   .ambient { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
   .ambient::before {
@@ -1323,12 +1323,9 @@
     <span class="tab-brand">Craig Young</span>
     <div class="tab-links">
       <button class="tab-link active" onclick="showTab('today',this)">Today</button>
-      <button class="tab-link" onclick="showTab('dashboard',this)">Dashboard</button>
+      <button class="tab-link" onclick="showTab('projects',this)">Projects</button>
       <button class="tab-link" onclick="showTab('outreach',this)">Outreach</button>
       <button class="tab-link" onclick="showTab('health',this)">Health</button>
-      <button class="tab-link" onclick="showTab('tasks',this)">Tasks</button>
-      <button class="tab-link" onclick="showTab('ideas',this)">Ideas</button>
-      <button class="tab-link" onclick="showTab('projects',this)">Projects</button>
       <button class="tab-link" onclick="showWisdomTab(this)">Wisdom</button>
       <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark mode">☽</button>
     </div>
@@ -1337,13 +1334,13 @@
 
 <!-- ═══ BOTTOM NAV (mobile) ═══ -->
 <nav class="cd-bnav">
-  <button class="cd-bnav-btn active" id="cdbnav-dashboard" onclick="cdBnav('dashboard',this)">
-    <svg class="cd-bnav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-    <span class="cd-bnav-label">Dash</span>
-  </button>
-  <button class="cd-bnav-btn" id="cdbnav-today" onclick="cdBnav('today',this)">
+  <button class="cd-bnav-btn active" id="cdbnav-today" onclick="cdBnav('today',this)">
     <svg class="cd-bnav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
     <span class="cd-bnav-label">Today</span>
+  </button>
+  <button class="cd-bnav-btn" id="cdbnav-projects" onclick="cdBnav('projects',this)">
+    <svg class="cd-bnav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="cd-bnav-label">Projects</span>
   </button>
   <button class="cd-bnav-btn" id="cdbnav-outreach" onclick="cdBnav('outreach',this)">
     <svg class="cd-bnav-icon" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
@@ -1353,18 +1350,14 @@
     <svg class="cd-bnav-icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
     <span class="cd-bnav-label">Health</span>
   </button>
-  <button class="cd-bnav-btn" id="cdbnav-ideas" onclick="cdBnav('ideas',this)">
-    <svg class="cd-bnav-icon" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>
-    <span class="cd-bnav-label">Ideas</span>
-  </button>
   <button class="cd-bnav-btn" id="cdbnav-more" onclick="toggleCdMore()">
     <svg class="cd-bnav-icon" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
     <span class="cd-bnav-label">More</span>
   </button>
 </nav>
 
-<!-- ═══ CONNECTION HUB ═══ -->
-<div class="conn-hub" id="conn-hub">
+<!-- ═══ CONNECTION HUB (hidden — preserved for future use) ═══ -->
+<div class="conn-hub" id="conn-hub" style="display:none;">
   <div class="conn-hub-inner">
     <div class="conn-dot checking" id="conn-google" data-service="google">
       Music
@@ -1397,13 +1390,30 @@
 <!-- ═══════════════════════════════════════ -->
 <!-- TAB 0: TODAY                             -->
 <!-- ═══════════════════════════════════════ -->
-<div id="tab-today" class="tab-pane">
-<div class="page" style="max-width:1000px;margin:0 auto;padding:1.5rem 1rem 6rem;">
+<div id="tab-today" class="tab-pane active">
+<div class="page" style="max-width:1200px;margin:0 auto;padding:1.5rem 1rem 6rem;">
 
-  <div class="today-header">
-    <div class="today-date-line" id="today-tab-date"></div>
-    <div class="today-greeting-line" id="today-tab-greeting"></div>
-  </div>
+  <!-- Hero -->
+  <section class="hero" style="margin-bottom:1.5rem;">
+    <div class="hero-left">
+      <div class="hero-date" id="hero-date"></div>
+      <h1 class="hero-greeting" id="hero-greeting"></h1>
+      <p class="hero-inspiration" id="hero-inspiration"></p>
+      <div class="hero-meta">
+        <span class="hero-pill purple" id="pill-mode">Mode: —</span>
+        <span class="hero-pill teal" id="pill-energy">Energy: —</span>
+      </div>
+    </div>
+    <div class="hero-clock-wrap">
+      <div class="hero-clock-inner" id="hero-clock-inner">
+        <svg id="hero-clock-svg" viewBox="0 0 400 400"></svg>
+        <div class="hero-clock-time">
+          <div class="hero-clock-hm" id="hero-clock-hm">12<span class="hero-clock-colon" id="hero-clock-colon">:</span>00</div>
+          <div class="hero-clock-ampm" id="hero-clock-ampm">AM</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- Progress -->
   <div class="today-progress-wrap">
@@ -1428,8 +1438,12 @@
       <div class="today-section-label">⚡ Daily Habits</div>
       <div id="today-habits"></div>
 
-      <!-- Quick actions -->
-      <button class="today-idea-btn" onclick="cdBnav('ideas', document.getElementById('cdbnav-ideas'))">💡 Capture an Idea</button>
+      <!-- Quick Ideas Capture -->
+      <div class="today-section-label">💡 Quick Capture</div>
+      <div style="display:flex;gap:0.5rem;margin-bottom:0.8rem;">
+        <input type="text" id="today-idea-input" class="inline-task-input" placeholder="Drop an idea..." style="flex:1;">
+        <button onclick="quickCaptureIdea()" style="background:var(--purple-soft);border:1px solid var(--border-subtle);color:var(--purple-bright);padding:0.4rem 0.8rem;border-radius:8px;font-family:var(--font-mono);font-size:0.7rem;cursor:pointer;">Add</button>
+      </div>
       <button class="today-summary-btn" id="today-summary-btn" onclick="generateDailySummary()">✦ Generate Daily Summary → ACE</button>
       <div id="today-summary-status" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--teal);text-align:center;margin-top:0.5rem;min-height:1.2em;"></div>
     </div>
@@ -1458,26 +1472,26 @@
 <!-- ═══════════════════════════════════════ -->
 <!-- TAB 1: DASHBOARD                        -->
 <!-- ═══════════════════════════════════════ -->
-<div id="tab-dashboard" class="tab-pane active">
+<div id="tab-dashboard" class="tab-pane">
 <div class="dashboard">
 
   <section class="hero">
     <div class="hero-left">
-      <div class="hero-date" id="hero-date"></div>
-      <h1 class="hero-greeting" id="hero-greeting"></h1>
-      <p class="hero-inspiration" id="hero-inspiration"></p>
+      <div class="hero-date" id="dash-hero-date"></div>
+      <h1 class="hero-greeting" id="dash-hero-greeting"></h1>
+      <p class="hero-inspiration" id="dash-hero-inspiration"></p>
       <div class="hero-meta">
-        <span class="hero-pill purple" id="pill-mode">Mode: —</span>
-        <span class="hero-pill teal" id="pill-energy">Energy: —</span>
+        <span class="hero-pill purple" id="dash-pill-mode">Mode: —</span>
+        <span class="hero-pill teal" id="dash-pill-energy">Energy: —</span>
       </div>
       <div class="hero-divider"></div>
     </div>
     <div class="hero-clock-wrap">
-      <div class="hero-clock-inner" id="hero-clock-inner">
-        <svg id="hero-clock-svg" viewBox="0 0 400 400"></svg>
+      <div class="hero-clock-inner" id="dash-hero-clock-inner">
+        <svg id="dash-hero-clock-svg" viewBox="0 0 400 400"></svg>
         <div class="hero-clock-time">
-          <div class="hero-clock-hm" id="hero-clock-hm">12<span class="hero-clock-colon" id="hero-clock-colon">:</span>00</div>
-          <div class="hero-clock-ampm" id="hero-clock-ampm">AM</div>
+          <div class="hero-clock-hm" id="dash-hero-clock-hm">12<span class="hero-clock-colon" id="dash-hero-clock-colon">:</span>00</div>
+          <div class="hero-clock-ampm" id="dash-hero-clock-ampm">AM</div>
         </div>
       </div>
     </div>
@@ -4095,7 +4109,11 @@
     // Clear all bottom nav active states
     document.querySelectorAll('.cd-bnav-btn').forEach(b => b.classList.remove('active'));
     // Navigate to the tab
-    showTab(tabId, null);
+    if (tabId === 'wisdom') {
+      showWisdomTab(null);
+    } else {
+      showTab(tabId, null);
+    }
     if (tabId === 'today') renderTodayTab();
   }
 
@@ -4147,16 +4165,6 @@
     const d = loadTodayData();
     const today = d[key] || {};
 
-    // Date + greeting
-    const now = new Date();
-    const h = now.getHours();
-    const greet = h < 12 ? 'Good morning.' : h < 17 ? 'Good afternoon.' : 'Good evening.';
-    const dateStr = now.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
-    const dateEl = document.getElementById('today-tab-date');
-    const greetEl = document.getElementById('today-tab-greeting');
-    if (dateEl) dateEl.textContent = dateStr;
-    if (greetEl) greetEl.textContent = greet;
-
     // Progress
     const allIds = [...TODAY_SUPPS.map(s=>s.id), ...TODAY_HABITS.map(h=>h.id)];
     const done = allIds.filter(id => today[id]).length;
@@ -4194,6 +4202,20 @@
           </div>
         </div>`).join('');
     }
+  }
+
+  function quickCaptureIdea() {
+    const input = document.getElementById('today-idea-input');
+    const text = input?.value?.trim();
+    if (!text) return;
+    // Use the existing addIdea infrastructure
+    const idea = { text, priority: 3, status: 'new', source: 'today', created: new Date().toISOString() };
+    fetch('/api/ace-sync', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ ideas: [...(window._ideasCache || []), idea] }) });
+    if (!window._ideasCache) window._ideasCache = [];
+    window._ideasCache.push(idea);
+    input.value = '';
+    input.placeholder = 'Captured!';
+    setTimeout(() => { input.placeholder = 'Drop an idea...'; }, 1500);
   }
 
   async function generateDailySummary() {
@@ -4548,17 +4570,17 @@
   background:rgba(12,11,20,0.97);backdrop-filter:blur(24px);
   border-top:1px solid rgba(200,190,230,0.15);padding:1rem;">
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;">
+    <button onclick="cdBnavMore('wisdom')" style="padding:1rem;background:rgba(200,169,110,0.08);border:1px solid rgba(200,169,110,0.2);border-radius:12px;color:#c8a96e;font-family:var(--font-body);font-size:0.9rem;cursor:pointer;text-align:left;">
+      ✦ Wisdom
+    </button>
+    <button onclick="cdBnavMore('dashboard')" style="padding:1rem;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:12px;color:var(--text-secondary);font-family:var(--font-body);font-size:0.9rem;cursor:pointer;text-align:left;">
+      📊 Dashboard
+    </button>
     <button onclick="cdBnavMore('tasks')" style="padding:1rem;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:12px;color:var(--text-secondary);font-family:var(--font-body);font-size:0.9rem;cursor:pointer;text-align:left;">
       ✅ Tasks
     </button>
-    <button onclick="cdBnavMore('projects')" style="padding:1rem;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:12px;color:var(--text-secondary);font-family:var(--font-body);font-size:0.9rem;cursor:pointer;text-align:left;">
-      🗂 Projects
-    </button>
-    <button onclick="cdBnavMore('wisdom')" style="padding:1rem;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:12px;color:var(--text-secondary);font-family:var(--font-body);font-size:0.9rem;cursor:pointer;text-align:left;">
-      📖 Wisdom
-    </button>
-    <button onclick="cdBnavMore('lyra')" style="padding:1rem;background:rgba(200,169,110,0.08);border:1px solid rgba(200,169,110,0.2);border-radius:12px;color:#c8a96e;font-family:var(--font-body);font-size:0.9rem;cursor:pointer;text-align:left;">
-      ✦ Lyra
+    <button onclick="cdBnavMore('ideas')" style="padding:1rem;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:12px;color:var(--text-secondary);font-family:var(--font-body);font-size:0.9rem;cursor:pointer;text-align:left;">
+      💡 Ideas
     </button>
   </div>
 </div>
