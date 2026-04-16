@@ -715,6 +715,44 @@ body.light ::-webkit-scrollbar-thumb { background: rgba(90,65,180,0.12); }
 
 /* Section spacing */
 .section-gap { margin-top: 2.5rem; }
+
+/* Hero text + clock layout */
+.hero-text { flex: 1; min-width: 0; }
+.hero-clock { display: none; }
+@media (min-width: 768px) {
+  .hero { display: flex; align-items: center; justify-content: space-between; }
+  .hero-clock {
+    display: block; width: 180px; height: 180px; flex-shrink: 0;
+    position: relative;
+  }
+  .hero-clock svg { width: 100%; height: 100%; }
+}
+
+/* Skyline visualization */
+.skyline { margin: 1rem 0 0.5rem; position: relative; height: 50px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 10px; overflow: hidden; }
+.skyline-bar { position: absolute; top: 6px; bottom: 6px; border-radius: 5px; opacity: 0.7; transition: opacity 0.2s; cursor: pointer; min-width: 3px; }
+.skyline-bar:hover { opacity: 1; }
+.skyline-hours { display: flex; justify-content: space-between; padding: 0 2px; margin-top: 2px; }
+.skyline-hour { font-family: var(--font-mono); font-size: 0.5rem; color: var(--text-tertiary); letter-spacing: 0.05em; }
+.skyline-now { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--red); z-index: 2; border-radius: 1px; }
+
+/* Time group (schedule modal) */
+.time-group {
+  display: flex; gap: 0.3rem; align-items: center;
+  background: var(--bg-card); border: 1px solid var(--border-subtle);
+  border-radius: 8px; padding: 0.3rem 0.5rem;
+}
+.time-group select {
+  background: none; border: none; color: var(--text-primary);
+  font-family: var(--font-mono); font-size: 0.85rem;
+  cursor: pointer; padding: 0.2rem;
+}
+.time-group select:focus { outline: none; }
+.time-group .time-sep {
+  color: var(--text-tertiary); font-family: var(--font-mono); font-size: 0.85rem;
+}
+body.light .time-group select { color: var(--text-primary); }
+body.light .time-group select option { background: #f4f2fc; }
 </style>
 </head>
 <body>
@@ -774,10 +812,15 @@ body.light ::-webkit-scrollbar-thumb { background: rgba(90,65,180,0.12); }
 
   <!-- Hero -->
   <div class="hero">
-    <div class="hero-date" id="hero-date"></div>
-    <div class="hero-greeting" id="hero-greeting">Good morning, <span>Craig</span></div>
-    <div class="hero-quote" id="hero-quote"></div>
-    <div class="hero-divider"></div>
+    <div class="hero-text">
+      <div class="hero-date" id="hero-date"></div>
+      <div class="hero-greeting" id="hero-greeting">Good morning, <span>Craig</span></div>
+      <div class="hero-quote" id="hero-quote"></div>
+      <div class="hero-divider"></div>
+    </div>
+    <div class="hero-clock" id="hero-clock">
+      <svg viewBox="0 0 200 200" id="clock-svg"></svg>
+    </div>
   </div>
 
   <!-- Two-column grid -->
@@ -793,6 +836,9 @@ body.light ::-webkit-scrollbar-thumb { background: rgba(90,65,180,0.12); }
           <div id="sched-list"></div>
           <button class="sched-add-btn" onclick="openSchedModal()">+ Add time block</button>
         </div>
+        <!-- Skyline -->
+        <div class="skyline" id="skyline"></div>
+        <div class="skyline-hours" id="skyline-hours"></div>
       </div>
 
       <!-- Tasks -->
@@ -815,8 +861,12 @@ body.light ::-webkit-scrollbar-thumb { background: rgba(90,65,180,0.12); }
       <div>
         <div class="slabel">Capture</div>
         <div class="card">
-          <div class="capture-row">
+          <div class="task-add-row">
             <input class="input-field" id="idea-input" placeholder="Quick idea..." onkeydown="if(event.key==='Enter')addIdea()">
+            <select class="select-field" id="idea-domain-select">
+              <option>Personal</option><option>SessionCraft</option><option>JCT</option>
+              <option>Music</option><option>ACE</option>
+            </select>
             <button class="btn-primary" onclick="addIdea()">Add</button>
           </div>
           <div id="idea-list" style="margin-top:0.75rem;"></div>
@@ -1015,30 +1065,6 @@ body.light ::-webkit-scrollbar-thumb { background: rgba(90,65,180,0.12); }
       <label>What</label>
       <input class="input-field" id="sched-title" placeholder="Meeting, creative block, etc.">
     </div>
-    <div style="display:flex;gap:1rem;">
-      <div class="modal-field" style="flex:1;">
-        <label>Start</label>
-        <div class="time-selects">
-          <select id="sched-start-h">
-            <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
-            <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
-          </select>
-          <select id="sched-start-m"><option value="00">00</option><option value="15">15</option><option value="30">30</option><option value="45">45</option></select>
-          <select id="sched-start-ap"><option>AM</option><option>PM</option></select>
-        </div>
-      </div>
-      <div class="modal-field" style="flex:1;">
-        <label>End</label>
-        <div class="time-selects">
-          <select id="sched-end-h">
-            <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
-            <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
-          </select>
-          <select id="sched-end-m"><option value="00">00</option><option value="15">15</option><option value="30">30</option><option value="45">45</option></select>
-          <select id="sched-end-ap"><option>AM</option><option>PM</option></select>
-        </div>
-      </div>
-    </div>
     <div class="modal-field">
       <label>Domain</label>
       <select class="select-field" id="sched-domain" style="width:100%;">
@@ -1047,9 +1073,39 @@ body.light ::-webkit-scrollbar-thumb { background: rgba(90,65,180,0.12); }
         <option>Family</option><option>Health</option><option>Work</option>
       </select>
     </div>
+    <div style="display:flex;gap:1rem;">
+      <div class="modal-field" style="flex:1;">
+        <label>Start</label>
+        <div class="time-group">
+          <select id="sched-start-h">
+            <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+            <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+          </select>
+          <span class="time-sep">:</span>
+          <select id="sched-start-m"><option value="00">00</option><option value="15">15</option><option value="30">30</option><option value="45">45</option></select>
+          <select id="sched-start-ap"><option>AM</option><option>PM</option></select>
+        </div>
+      </div>
+      <div class="modal-field" style="flex:1;">
+        <label>End</label>
+        <div class="time-group">
+          <select id="sched-end-h">
+            <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+            <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+          </select>
+          <span class="time-sep">:</span>
+          <select id="sched-end-m"><option value="00">00</option><option value="15">15</option><option value="30">30</option><option value="45">45</option></select>
+          <select id="sched-end-ap"><option>AM</option><option>PM</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label>Notes</label>
+      <input class="input-field" id="sched-notes" placeholder="Optional notes...">
+    </div>
     <div class="modal-btns">
+      <button class="btn-danger" id="sched-delete-btn" style="display:none;margin-right:auto;" onclick="deleteSchedBlock()">Delete</button>
       <button class="btn-secondary" onclick="closeSchedModal()">Cancel</button>
-      <button class="btn-danger" id="sched-delete-btn" style="display:none;" onclick="deleteSchedBlock()">Delete</button>
       <button class="btn-primary" onclick="saveSchedBlock()">Save</button>
     </div>
   </div>
@@ -1291,6 +1347,7 @@ function renderSchedule() {
   var container = document.getElementById('sched-list');
   if (!blocks.length) {
     container.innerHTML = '<div style="color:var(--text-tertiary);font-size:0.85rem;padding:0.5rem 0;">No blocks scheduled for today.</div>';
+    renderSkyline();
     return;
   }
 
@@ -1336,6 +1393,7 @@ function renderSchedule() {
   }
 
   container.innerHTML = html;
+  renderSkyline();
 }
 
 function getTimeFromSelects(prefix) {
@@ -1591,6 +1649,9 @@ function renderIdeas() {
     html += '<div class="capture-item">';
     html += '<span class="capture-time">' + (idea.date || '') + '</span>';
     html += '<span>' + escHtml(idea.text) + '</span>';
+    if (idea.domain) {
+      html += '<span class="domain-tag" style="background:' + domainBg(idea.domain) + ';color:' + domainColor(idea.domain) + ';margin-left:0.4rem;">' + escHtml(idea.domain) + '</span>';
+    }
     html += '<button class="capture-delete" onclick="deleteIdea(\'' + idea.id + '\')">&times;</button>';
     html += '</div>';
   });
@@ -1601,8 +1662,9 @@ function addIdea() {
   var input = document.getElementById('idea-input');
   var text = input.value.trim();
   if (!text) return;
+  var domain = document.getElementById('idea-domain-select').value;
   var ideas = getIdeas();
-  ideas.push({ id: uid(), text: text, date: todayKey(), time: new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' }) });
+  ideas.push({ id: uid(), text: text, domain: domain, date: todayKey(), time: new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' }) });
   saveAndSync('ace_ideas', ideas);
   input.value = '';
   renderIdeas();
@@ -2119,11 +2181,146 @@ function toggleLyraVoice() {
 window.toggleLyraVoice = toggleLyraVoice;
 
 /* ───────────────────────────────────────────────────────
+   ANALOG CLOCK (hero, desktop only)
+   ─────────────────────────────────────────────────────── */
+function initClock() {
+  var svg = document.getElementById('clock-svg');
+  if (!svg) return;
+
+  function drawClock() {
+    var now = new Date();
+    var h = now.getHours() % 12;
+    var m = now.getMinutes();
+    var s = now.getSeconds();
+
+    var isLight = document.body.classList.contains('light');
+    var faceColor = isLight ? '#e8e6f0' : 'rgba(200,190,230,0.04)';
+    var rimColor = isLight ? 'rgba(109,40,217,0.15)' : 'rgba(196,161,255,0.12)';
+    var tickColor = isLight ? 'rgba(109,40,217,0.3)' : 'rgba(196,161,255,0.25)';
+    var hourTickColor = isLight ? 'rgba(109,40,217,0.5)' : 'rgba(196,161,255,0.5)';
+    var handColor = isLight ? '#5b21b6' : '#c4a1ff';
+    var minHandColor = isLight ? '#7c3aed' : '#a07de8';
+    var secColor = isLight ? '#dc2626' : '#e85a6f';
+    var numColor = isLight ? 'rgba(109,40,217,0.4)' : 'rgba(196,161,255,0.3)';
+    var centerDot = isLight ? '#6d28d9' : '#c4a1ff';
+
+    var markup = '';
+    // Face
+    markup += '<circle cx="100" cy="100" r="95" fill="' + faceColor + '" stroke="' + rimColor + '" stroke-width="1.5"/>';
+
+    // Hour ticks
+    for (var i = 0; i < 60; i++) {
+      var angle = (i * 6) * Math.PI / 180;
+      var isHour = i % 5 === 0;
+      var r1 = isHour ? 78 : 84;
+      var r2 = 88;
+      var x1 = 100 + r1 * Math.sin(angle);
+      var y1 = 100 - r1 * Math.cos(angle);
+      var x2 = 100 + r2 * Math.sin(angle);
+      var y2 = 100 - r2 * Math.cos(angle);
+      var sw = isHour ? 2 : 0.8;
+      var col = isHour ? hourTickColor : tickColor;
+      markup += '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+col+'" stroke-width="'+sw+'" stroke-linecap="round"/>';
+    }
+
+    // Hour numbers
+    for (var n = 1; n <= 12; n++) {
+      var nAngle = (n * 30) * Math.PI / 180;
+      var nx = 100 + 68 * Math.sin(nAngle);
+      var ny = 100 - 68 * Math.cos(nAngle) + 4.5;
+      markup += '<text x="'+nx+'" y="'+ny+'" text-anchor="middle" fill="'+numColor+'" font-family="var(--font-mono)" font-size="11" font-weight="400">'+n+'</text>';
+    }
+
+    // Hour hand
+    var hAngle = ((h + m/60) * 30) * Math.PI / 180;
+    var hx = 100 + 48 * Math.sin(hAngle);
+    var hy = 100 - 48 * Math.cos(hAngle);
+    markup += '<line x1="100" y1="100" x2="'+hx+'" y2="'+hy+'" stroke="'+handColor+'" stroke-width="3.5" stroke-linecap="round"/>';
+
+    // Minute hand
+    var mAngle = ((m + s/60) * 6) * Math.PI / 180;
+    var mx = 100 + 68 * Math.sin(mAngle);
+    var my = 100 - 68 * Math.cos(mAngle);
+    markup += '<line x1="100" y1="100" x2="'+mx+'" y2="'+my+'" stroke="'+minHandColor+'" stroke-width="2" stroke-linecap="round"/>';
+
+    // Second hand
+    var sAngle = (s * 6) * Math.PI / 180;
+    var sx = 100 + 72 * Math.sin(sAngle);
+    var sy = 100 - 72 * Math.cos(sAngle);
+    markup += '<line x1="100" y1="100" x2="'+sx+'" y2="'+sy+'" stroke="'+secColor+'" stroke-width="0.8" stroke-linecap="round"/>';
+
+    // Center dot
+    markup += '<circle cx="100" cy="100" r="3.5" fill="'+centerDot+'"/>';
+
+    // Digital time below
+    var h12 = h === 0 ? 12 : h;
+    var timeStr = h12 + ':' + String(m).padStart(2,'0');
+    var ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+    markup += '<text x="100" y="140" text-anchor="middle" fill="'+numColor+'" font-family="var(--font-mono)" font-size="10" letter-spacing="0.15em">'+timeStr+' '+ampm+'</text>';
+
+    svg.innerHTML = markup;
+  }
+
+  drawClock();
+  setInterval(drawClock, 1000);
+}
+
+/* ───────────────────────────────────────────────────────
+   SKYLINE VISUALIZATION
+   ─────────────────────────────────────────────────────── */
+function renderSkyline() {
+  var el = document.getElementById('skyline');
+  var hoursEl = document.getElementById('skyline-hours');
+  if (!el) return;
+
+  var startHour = 6; // 6am
+  var endHour = 23; // 11pm
+  var totalMin = (endHour - startHour) * 60;
+
+  var blocks = getTodayBlocks();
+  var html = '';
+
+  // Now line
+  var now = new Date();
+  var nowMin = now.getHours() * 60 + now.getMinutes();
+  var nowOffset = nowMin - startHour * 60;
+  if (nowOffset >= 0 && nowOffset <= totalMin) {
+    var nowPct = (nowOffset / totalMin) * 100;
+    html += '<div class="skyline-now" style="left:' + nowPct + '%"></div>';
+  }
+
+  blocks.forEach(function(b) {
+    var sp = (b.start || '00:00').split(':');
+    var sMin = parseInt(sp[0],10) * 60 + parseInt(sp[1],10) - startHour * 60;
+    var ep = (b.end || b.start || '00:00').split(':');
+    var eMin = parseInt(ep[0],10) * 60 + parseInt(ep[1],10) - startHour * 60;
+    if (eMin <= sMin) eMin = sMin + 60;
+
+    var left = Math.max(0, (sMin / totalMin) * 100);
+    var width = Math.min(100 - left, ((eMin - sMin) / totalMin) * 100);
+    var color = domainColor(b.domain);
+
+    html += '<div class="skyline-bar" style="left:'+left+'%;width:'+width+'%;background:'+color+'" title="'+escHtml(b.title || '')+' ('+formatTime12(b.start)+' - '+formatTime12(b.end)+')"></div>';
+  });
+
+  el.innerHTML = html;
+
+  // Hour labels
+  var labelHtml = '';
+  for (var h = startHour; h <= endHour; h += 2) {
+    var label = h === 0 ? '12a' : h < 12 ? h + 'a' : h === 12 ? '12p' : (h-12) + 'p';
+    labelHtml += '<span class="skyline-hour">' + label + '</span>';
+  }
+  if (hoursEl) hoursEl.innerHTML = labelHtml;
+}
+
+/* ───────────────────────────────────────────────────────
    RENDER ALL
    ─────────────────────────────────────────────────────── */
 function renderAll() {
   updateHero();
   renderSchedule();
+  renderSkyline();
   renderTasks();
   renderSupplements();
   renderIdeas();
@@ -2150,6 +2347,7 @@ function escHtml(str) {
    ─────────────────────────────────────────────────────── */
 initTheme();
 renderAll();
+initClock();
 
 // Dismiss loading overlay
 setTimeout(function() {
@@ -2161,6 +2359,9 @@ setInterval(updateHero, 60000);
 
 // Re-render schedule every 30 seconds (for now-line)
 setInterval(renderSchedule, 30000);
+
+// Update skyline now-line every minute
+setInterval(renderSkyline, 60000);
 
 // Sync from server on load, then every 60 seconds
 syncFromServer();
