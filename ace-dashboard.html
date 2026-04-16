@@ -1261,6 +1261,48 @@
   @keyframes lyra-shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
   .lyra-pin-overlay.pin-error .lyra-pin-dots { animation: lyra-shake 0.6s ease; }
   .lyra-pin-overlay.pin-error .lyra-pin-dot { border-color: var(--red); background: var(--red); }
+
+  /* -- Schedule Blocks -- */
+  .sched-block { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg-card); border-radius:12px; margin-bottom:6px; border:1.5px solid transparent; position:relative; transition:opacity 0.2s; }
+  .sched-block.sched-now { border-color:var(--teal); box-shadow:0 0 12px rgba(94,196,196,0.15); }
+  .sched-block.sched-past { opacity:0.45; }
+  .sched-block.sched-done { opacity:0.4; }
+  .sched-block.sched-done .sched-title { text-decoration:line-through; }
+  .sched-time { font-family:'JetBrains Mono',monospace; color:var(--teal); font-size:0.82rem; min-width:52px; text-align:right; flex-shrink:0; }
+  .sched-info { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .sched-title { font-size:0.92rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sched-domain { font-size:0.68rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; padding:2px 7px; border-radius:6px; display:inline-block; width:fit-content; }
+  .sched-domain.dom-sessioncraft { background:rgba(196,161,255,0.18); color:#c4a1ff; }
+  .sched-domain.dom-jct, .sched-domain.dom-tennis { background:rgba(126,207,126,0.18); color:#7ecf7e; }
+  .sched-domain.dom-music { background:rgba(94,196,196,0.18); color:#5ec4c4; }
+  .sched-domain.dom-ace { background:rgba(232,197,90,0.18); color:#e8c55a; }
+  .sched-domain.dom-personal { background:rgba(240,160,192,0.18); color:#f0a0c0; }
+  .sched-domain.dom-family { background:rgba(128,180,232,0.18); color:#80b4e8; }
+  .sched-domain.dom-work { background:rgba(154,156,255,0.18); color:#9a9cff; }
+  .sched-domain.dom-health { background:rgba(94,196,196,0.18); color:#5ec4c4; }
+  .sched-actions { display:none; gap:4px; align-items:center; flex-shrink:0; }
+  .sched-block:hover .sched-actions { display:flex; }
+  @media(max-width:600px){ .sched-actions { display:flex; } }
+  .sched-act-btn { background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:1rem; padding:4px; border-radius:6px; transition:color 0.15s; }
+  .sched-act-btn:hover { color:var(--teal); }
+  .sched-add-btn { width:100%; padding:10px; background:transparent; border:1.5px dashed var(--teal); border-radius:12px; color:var(--teal); font-size:0.88rem; cursor:pointer; margin-bottom:14px; font-family:inherit; transition:background 0.15s; }
+  .sched-add-btn:hover { background:rgba(94,196,196,0.08); }
+  .sched-now-marker { font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--teal); text-transform:uppercase; letter-spacing:0.1em; padding:4px 0; }
+  .sched-modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:500; align-items:center; justify-content:center; }
+  .sched-modal-overlay.open { display:flex; }
+  .sched-modal { background:var(--bg-card); border-radius:16px; padding:20px; width:90vw; max-width:380px; box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+  .sched-modal h3 { margin:0 0 14px 0; font-size:1.05rem; }
+  .sched-field { margin-bottom:10px; }
+  .sched-field label { display:block; font-family:'JetBrains Mono',monospace; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-dim); margin-bottom:4px; }
+  .sched-field input, .sched-field select { width:100%; padding:8px 10px; background:var(--bg-card); border:1.5px solid rgba(255,255,255,0.1); border-radius:8px; color:var(--text); font-size:0.9rem; font-family:inherit; box-sizing:border-box; }
+  .sched-field input:focus, .sched-field select:focus { outline:none; border-color:var(--teal); }
+  .sched-time-row { display:flex; gap:10px; }
+  .sched-time-row .sched-field { flex:1; }
+  .sched-modal-btns { display:flex; gap:8px; margin-top:14px; justify-content:flex-end; }
+  .sched-modal-btns button { padding:8px 16px; border-radius:8px; border:none; cursor:pointer; font-size:0.88rem; font-family:inherit; }
+  .sched-save-btn { background:var(--teal); color:#000; font-weight:600; }
+  .sched-cancel-btn { background:var(--bg-card); color:var(--text-dim); border:1.5px solid rgba(255,255,255,0.1); }
+  .sched-delete-btn { background:var(--red, #e85d5d); color:#fff; font-weight:600; }
 </style>
 </head>
 <body>
@@ -1366,7 +1408,14 @@
   </div>
 
   <!-- Supplements -->
-  <div class="today-section-label">☀️ Morning Supplements</div>
+    <!-- Schedule Blocks -->
+  <div class="today-section-label" style="display:flex;align-items:center;justify-content:space-between;">
+    <span>📅 Today’s Schedule</span>
+  </div>
+  <div id="sched-blocks"></div>
+  <button class="sched-add-btn" onclick="openSchedModal()">+ Add time block</button>
+
+<div class="today-section-label">☀️ Morning Supplements</div>
   <div id="today-morning-supps"></div>
 
   <div class="today-section-label">☀️ Breakfast</div>
@@ -2429,7 +2478,7 @@
       { text:'Identify 5 facilitator candidates', done: true },
       { text:'Protect 7:30pm creative block 3x this week', done: false, domain:'Music' },
     ]);
-    renderSkyline([]);
+    // renderSkyline fed from schedule data
     renderVision([
       { type:'win', title:'SessionCraft Live', text:'Platform launched, early testers onboarded, first revenue in sight.' },
       { type:'projection', title:'10 Licensed Tracks', text:'Music reaching facilitators and healers worldwide via SessionCraft.' },
@@ -3061,6 +3110,10 @@
         if (data['ace_supplements'] && (!_aceKeyWriteTime['ace_supplements'] || now - _aceKeyWriteTime['ace_supplements'] > 5000)) {
           localStorage.setItem('ace_supplements', JSON.stringify(data['ace_supplements']));
           if (typeof renderSupplements === 'function') renderSupplements();
+        }
+        if (data['ace_schedule'] && (!_aceKeyWriteTime['ace_schedule'] || now - _aceKeyWriteTime['ace_schedule'] > 5000)) {
+          localStorage.setItem('ace_schedule', JSON.stringify(data['ace_schedule']));
+          if (typeof renderSchedBlocks === 'function') renderSchedBlocks();
         }
         if (data['cd_today'] && (!_aceKeyWriteTime['cd_today'] || now - _aceKeyWriteTime['cd_today'] > 5000)) {
           localStorage.setItem('cd_today', JSON.stringify(data['cd_today']));
@@ -4196,6 +4249,245 @@
       statusEl.textContent = 'Save failed.';
     }
   }
+
+
+  // -- Schedule Blocks --
+  var _schedEditId = null;
+
+  function loadSchedData() {
+    try { return JSON.parse(localStorage.getItem('ace_schedule') || '{}'); } catch(e) { return {}; }
+  }
+
+  function saveSchedData(d) {
+    localStorage.setItem('ace_schedule', JSON.stringify(d));
+    syncToServer({ ace_schedule: d });
+  }
+
+  function getTodayBlocks() {
+    var data = loadSchedData();
+    var key = todayKey();
+    var blocks = data[key] || [];
+    blocks.sort(function(a, b) { return (a.start || '').localeCompare(b.start || ''); });
+    return blocks;
+  }
+
+  function fmtSchedTime(t) {
+    if (!t) return '';
+    var parts = t.split(':');
+    var h = parseInt(parts[0], 10);
+    var m = parts[1];
+    var ampm = h >= 12 ? 'p' : 'a';
+    var h12 = h % 12 || 12;
+    if (m === '00') return h12 + ampm;
+    return h12 + ':' + m + ampm;
+  }
+
+  function escHtml(s) {
+    if (!s) return '';
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function renderSchedBlocks() {
+    var container = document.getElementById('sched-blocks');
+    if (!container) return;
+    var blocks = getTodayBlocks();
+    var now = new Date();
+    var nowMin = now.getHours() * 60 + now.getMinutes();
+    var nowStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    var out = '';
+    var insertedNow = false;
+
+    for (var i = 0; i < blocks.length; i++) {
+      var b = blocks[i];
+      var startMin = 0;
+      var endMin = 0;
+      if (b.start) {
+        var sp = b.start.split(':');
+        startMin = parseInt(sp[0],10) * 60 + parseInt(sp[1],10);
+      }
+      if (b.end) {
+        var ep = b.end.split(':');
+        endMin = parseInt(ep[0],10) * 60 + parseInt(ep[1],10);
+      }
+
+      if (!insertedNow && b.start && nowStr < b.start) {
+        out += '<div class="sched-now-marker">' + fmtSchedTime(nowStr) + ' \u2014 now</div>';
+        insertedNow = true;
+      }
+
+      var isNow = b.start && b.end && nowStr >= b.start && nowStr < b.end;
+      var isPast = b.end && nowStr >= b.end;
+      var cls = 'sched-block';
+      if (b.done) cls += ' sched-done';
+      else if (isNow) cls += ' sched-now';
+      else if (isPast) cls += ' sched-past';
+
+      var domCls = 'sched-domain dom-' + (b.domain || 'personal').toLowerCase().replace(/\s+/g, '');
+      var timeLabel = fmtSchedTime(b.start);
+      if (b.end) timeLabel += '-' + fmtSchedTime(b.end);
+
+      out += '<div class="' + cls + '">';
+      out += '<div class="sched-time">' + timeLabel + '</div>';
+      out += '<div class="sched-info">';
+      out += '<div class="sched-title">' + escHtml(b.title) + '</div>';
+      out += '<span class="' + domCls + '">' + escHtml(b.domain || 'Personal') + '</span>';
+      out += '</div>';
+      out += '<div class="sched-actions">';
+      out += '<button class="sched-act-btn" onclick="toggleSchedDone(\x27' + escHtml(b.id) + '\x27)" title="Toggle done">' + (b.done ? '\u21A9' : '\u2713') + '</button>';
+      out += '<button class="sched-act-btn" onclick="openSchedEdit(\x27' + escHtml(b.id) + '\x27)" title="Edit">\u270E</button>';
+      out += '</div>';
+      out += '</div>';
+
+      if (!insertedNow && isNow) {
+        insertedNow = true;
+      }
+    }
+
+    if (!insertedNow && blocks.length > 0) {
+      out += '<div class="sched-now-marker">' + fmtSchedTime(nowStr) + ' \u2014 now</div>';
+    }
+
+    container.innerHTML = out;
+    feedSkylineFromSchedule(blocks);
+  }
+
+  function feedSkylineFromSchedule(blocks) {
+    var domainColors = {
+      sessioncraft: '#c4a1ff',
+      jct: '#7ecf7e',
+      tennis: '#7ecf7e',
+      music: '#5ec4c4',
+      ace: '#e8c55a',
+      personal: '#f0a0c0',
+      family: '#80b4e8',
+      work: '#9a9cff',
+      health: '#5ec4c4'
+    };
+    var now = new Date();
+    var nowMin = now.getHours() * 60 + now.getMinutes();
+    var events = [];
+    for (var i = 0; i < blocks.length; i++) {
+      var b = blocks[i];
+      if (!b.start) continue;
+      var sp = b.start.split(':');
+      var sMin = parseInt(sp[0],10) * 60 + parseInt(sp[1],10);
+      var eMin = sMin + 60;
+      if (b.end) {
+        var ep = b.end.split(':');
+        eMin = parseInt(ep[0],10) * 60 + parseInt(ep[1],10);
+      }
+      var dur = eMin - sMin;
+      if (dur <= 0) dur = 60;
+      var domKey = (b.domain || 'personal').toLowerCase().replace(/\s+/g, '');
+      var color = domainColors[domKey] || '#9a9cff';
+      var isNow = nowMin >= sMin && nowMin < eMin;
+      events.push({ startMin: sMin, durationMin: dur, title: b.title || '', color: color, isNow: isNow });
+    }
+    if (typeof renderSkyline === 'function') renderSkyline(events);
+  }
+
+  function openSchedModal(defaults) {
+    _schedEditId = null;
+    document.getElementById('sched-modal-title').textContent = 'Add Time Block';
+    document.getElementById('sched-title').value = (defaults && defaults.title) || '';
+    document.getElementById('sched-start').value = (defaults && defaults.start) || '';
+    document.getElementById('sched-end').value = (defaults && defaults.end) || '';
+    document.getElementById('sched-domain').value = (defaults && defaults.domain) || 'Personal';
+    document.getElementById('sched-delete-btn').style.display = 'none';
+    document.getElementById('sched-modal').classList.add('open');
+  }
+
+  function closeSchedModal() {
+    document.getElementById('sched-modal').classList.remove('open');
+    _schedEditId = null;
+  }
+
+  function openSchedEdit(id) {
+    var blocks = getTodayBlocks();
+    var block = null;
+    for (var i = 0; i < blocks.length; i++) {
+      if (blocks[i].id === id) { block = blocks[i]; break; }
+    }
+    if (!block) return;
+    _schedEditId = id;
+    document.getElementById('sched-modal-title').textContent = 'Edit Time Block';
+    document.getElementById('sched-title').value = block.title || '';
+    document.getElementById('sched-start').value = block.start || '';
+    document.getElementById('sched-end').value = block.end || '';
+    document.getElementById('sched-domain').value = block.domain || 'Personal';
+    document.getElementById('sched-delete-btn').style.display = '';
+    document.getElementById('sched-modal').classList.add('open');
+  }
+
+  function saveSchedBlock() {
+    var title = document.getElementById('sched-title').value.trim();
+    var start = document.getElementById('sched-start').value;
+    var end = document.getElementById('sched-end').value;
+    var domain = document.getElementById('sched-domain').value;
+    if (!title) return;
+
+    var data = loadSchedData();
+    var key = todayKey();
+    if (!data[key]) data[key] = [];
+
+    if (_schedEditId) {
+      for (var i = 0; i < data[key].length; i++) {
+        if (data[key][i].id === _schedEditId) {
+          data[key][i].title = title;
+          data[key][i].start = start;
+          data[key][i].end = end;
+          data[key][i].domain = domain;
+          break;
+        }
+      }
+    } else {
+      data[key].push({
+        id: 'sb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        title: title,
+        start: start,
+        end: end,
+        domain: domain,
+        done: false
+      });
+    }
+
+    saveSchedData(data);
+    closeSchedModal();
+    renderSchedBlocks();
+  }
+
+  function toggleSchedDone(id) {
+    var data = loadSchedData();
+    var key = todayKey();
+    if (!data[key]) return;
+    for (var i = 0; i < data[key].length; i++) {
+      if (data[key][i].id === id) {
+        data[key][i].done = !data[key][i].done;
+        break;
+      }
+    }
+    saveSchedData(data);
+    renderSchedBlocks();
+  }
+
+  function deleteSchedBlock() {
+    if (!_schedEditId) return;
+    var data = loadSchedData();
+    var key = todayKey();
+    if (!data[key]) return;
+    data[key] = data[key].filter(function(b) { return b.id !== _schedEditId; });
+    saveSchedData(data);
+    closeSchedModal();
+    renderSchedBlocks();
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeSchedModal();
+  });
+
+  renderSchedBlocks();
+  setInterval(renderSchedBlocks, 30000);
+
 </script>
 
 <!-- ═══ MORE DRAWER (mobile) ═══ -->
@@ -4216,6 +4508,26 @@
       ✦ Lyra
     </button>
   </div>
+</div>
+
+
+<div class="sched-modal-overlay" id="sched-modal">
+<div class="sched-modal">
+<h3 id="sched-modal-title">Add Time Block</h3>
+<div class="sched-field"><label>What</label><input type="text" id="sched-title" placeholder="Meeting, creative block, etc."></div>
+<div class="sched-time-row">
+<div class="sched-field"><label>Start</label><input type="time" id="sched-start"></div>
+<div class="sched-field"><label>End</label><input type="time" id="sched-end"></div>
+</div>
+<div class="sched-field"><label>Domain</label>
+<select id="sched-domain"><option>Personal</option><option>SessionCraft</option><option>JCT</option><option>Tennis</option><option>Music</option><option>ACE</option><option>Family</option><option>Health</option><option>Work</option></select>
+</div>
+<div class="sched-modal-btns">
+<button class="sched-cancel-btn" onclick="closeSchedModal()">Cancel</button>
+<button class="sched-delete-btn" id="sched-delete-btn" style="display:none;" onclick="deleteSchedBlock()">Delete</button>
+<button class="sched-save-btn" onclick="saveSchedBlock()">Save</button>
+</div>
+</div>
 </div>
 
 </body>
