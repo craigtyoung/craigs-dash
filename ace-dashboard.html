@@ -1303,6 +1303,13 @@
   .sched-save-btn { background:var(--teal); color:#000; font-weight:600; }
   .sched-cancel-btn { background:var(--bg-card); color:var(--text-dim); border:1.5px solid rgba(255,255,255,0.1); }
   .sched-delete-btn { background:var(--red, #e85d5d); color:#fff; font-weight:600; }
+  .today-grid { display:grid; grid-template-columns:1fr; gap:1.5rem; }
+  @media(min-width:700px) { .today-grid { grid-template-columns:1fr 1fr; } }
+  .today-col { min-width:0; }
+  .sched-time-selects { display:flex; gap:4px; }
+  .sched-time-selects select { flex:1; padding:8px 6px; background:rgba(200,190,230,0.12); border:1.5px solid rgba(255,255,255,0.1); border-radius:8px; color:var(--text); font-size:0.9rem; font-family:inherit; box-sizing:border-box; -webkit-appearance:none; appearance:none; text-align:center; }
+  .sched-time-selects select:focus { outline:none; border-color:var(--teal); }
+  .sched-field select, .sched-time-selects select { background:rgba(200,190,230,0.12); color:var(--text); -webkit-appearance:none; appearance:none; }
 </style>
 </head>
 <body>
@@ -1391,7 +1398,7 @@
 <!-- TAB 0: TODAY                             -->
 <!-- ═══════════════════════════════════════ -->
 <div id="tab-today" class="tab-pane">
-<div class="page" style="max-width:600px;margin:0 auto;padding:1.5rem 1rem 6rem;">
+<div class="page" style="max-width:1000px;margin:0 auto;padding:1.5rem 1rem 6rem;">
 
   <div class="today-header">
     <div class="today-date-line" id="today-tab-date"></div>
@@ -1407,37 +1414,43 @@
     <div class="today-progress-bar"><div class="today-progress-fill" id="today-progress-fill" style="width:0%"></div></div>
   </div>
 
-  <!-- Supplements -->
-    <!-- Schedule Blocks -->
-  <div class="today-section-label" style="display:flex;align-items:center;justify-content:space-between;">
-    <span>📅 Today’s Schedule</span>
+  <!-- Two-column grid layout -->
+  <div class="today-grid">
+    <div class="today-col">
+      <!-- Schedule Blocks -->
+      <div class="today-section-label" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>📅 Today's Schedule</span>
+      </div>
+      <div id="sched-blocks"></div>
+      <button class="sched-add-btn" onclick="openSchedModal()">+ Add time block</button>
+
+      <!-- Daily habits -->
+      <div class="today-section-label">⚡ Daily Habits</div>
+      <div id="today-habits"></div>
+
+      <!-- Quick actions -->
+      <button class="today-idea-btn" onclick="cdBnav('ideas', document.getElementById('cdbnav-ideas'))">💡 Capture an Idea</button>
+      <button class="today-summary-btn" id="today-summary-btn" onclick="generateDailySummary()">✦ Generate Daily Summary → ACE</button>
+      <div id="today-summary-status" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--teal);text-align:center;margin-top:0.5rem;min-height:1.2em;"></div>
+    </div>
+    <div class="today-col">
+      <!-- Supplements -->
+      <div class="today-section-label">☀️ Morning Supplements</div>
+      <div id="today-morning-supps"></div>
+
+      <div class="today-section-label">☀️ Breakfast</div>
+      <div id="today-breakfast-supps"></div>
+
+      <div class="today-section-label">🌤️ Lunch</div>
+      <div id="today-lunch-supps"></div>
+
+      <div class="today-section-label">🌙 Dinner</div>
+      <div id="today-dinner-supps"></div>
+
+      <div class="today-section-label">🌙 Bedtime</div>
+      <div id="today-bedtime-supps"></div>
+    </div>
   </div>
-  <div id="sched-blocks"></div>
-  <button class="sched-add-btn" onclick="openSchedModal()">+ Add time block</button>
-
-<div class="today-section-label">☀️ Morning Supplements</div>
-  <div id="today-morning-supps"></div>
-
-  <div class="today-section-label">☀️ Breakfast</div>
-  <div id="today-breakfast-supps"></div>
-
-  <div class="today-section-label">🌤️ Lunch</div>
-  <div id="today-lunch-supps"></div>
-
-  <div class="today-section-label">🌙 Dinner</div>
-  <div id="today-dinner-supps"></div>
-
-  <div class="today-section-label">🌙 Bedtime</div>
-  <div id="today-bedtime-supps"></div>
-
-  <!-- Daily habits -->
-  <div class="today-section-label">⚡ Daily Habits</div>
-  <div id="today-habits"></div>
-
-  <!-- Quick actions -->
-  <button class="today-idea-btn" onclick="cdBnav('ideas', document.getElementById('cdbnav-ideas'))">💡 Capture an Idea</button>
-  <button class="today-summary-btn" id="today-summary-btn" onclick="generateDailySummary()">✦ Generate Daily Summary → ACE</button>
-  <div id="today-summary-status" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--teal);text-align:center;margin-top:0.5rem;min-height:1.2em;"></div>
 
 </div>
 </div>
@@ -4386,12 +4399,52 @@
     if (typeof renderSkyline === 'function') renderSkyline(events);
   }
 
+  function getTimeFromSelects(prefix) {
+    var h = parseInt(document.getElementById(prefix + "-h").value);
+    var m = document.getElementById(prefix + "-m").value;
+    var ap = document.getElementById(prefix + "-ap").value;
+    if (ap === "PM" && h !== 12) h += 12;
+    if (ap === "AM" && h === 12) h = 0;
+    return String(h).padStart(2,"0") + ":" + m;
+  }
+
+  function setTimeSelects(prefix, time24) {
+    if (!time24) return;
+    var parts = time24.split(":");
+    var h = parseInt(parts[0]);
+    var m = parts[1] || "00";
+    var ap = h >= 12 ? "PM" : "AM";
+    var h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    var mNum = parseInt(m);
+    var rounded = String(Math.round(mNum/15)*15).padStart(2,"0");
+    if (rounded === "60") rounded = "45";
+    document.getElementById(prefix + "-h").value = String(h12);
+    document.getElementById(prefix + "-m").value = rounded;
+    document.getElementById(prefix + "-ap").value = ap;
+  }
+
   function openSchedModal(defaults) {
     _schedEditId = null;
     document.getElementById('sched-modal-title').textContent = 'Add Time Block';
     document.getElementById('sched-title').value = (defaults && defaults.title) || '';
-    document.getElementById('sched-start').value = (defaults && defaults.start) || '';
-    document.getElementById('sched-end').value = (defaults && defaults.end) || '';
+    if (defaults && defaults.start) {
+      setTimeSelects("sched-start", defaults.start);
+    } else {
+      var now = new Date();
+      var curH = now.getHours();
+      var curM = now.getMinutes();
+      var roundedM = Math.round(curM / 15) * 15;
+      if (roundedM === 60) { roundedM = 0; curH++; }
+      var startTime = String(curH).padStart(2,"0") + ":" + String(roundedM).padStart(2,"0");
+      setTimeSelects("sched-start", startTime);
+      var endH = curH + 1;
+      if (endH > 23) endH = 23;
+      var endTime = String(endH).padStart(2,"0") + ":" + String(roundedM).padStart(2,"0");
+      setTimeSelects("sched-end", endTime);
+    }
+    if (defaults && defaults.end) {
+      setTimeSelects("sched-end", defaults.end);
+    }
     document.getElementById('sched-domain').value = (defaults && defaults.domain) || 'Personal';
     document.getElementById('sched-delete-btn').style.display = 'none';
     document.getElementById('sched-modal').classList.add('open');
@@ -4412,8 +4465,8 @@
     _schedEditId = id;
     document.getElementById('sched-modal-title').textContent = 'Edit Time Block';
     document.getElementById('sched-title').value = block.title || '';
-    document.getElementById('sched-start').value = block.start || '';
-    document.getElementById('sched-end').value = block.end || '';
+    setTimeSelects('sched-start', block.start || '');
+    setTimeSelects('sched-end', block.end || '');
     document.getElementById('sched-domain').value = block.domain || 'Personal';
     document.getElementById('sched-delete-btn').style.display = '';
     document.getElementById('sched-modal').classList.add('open');
@@ -4421,8 +4474,8 @@
 
   function saveSchedBlock() {
     var title = document.getElementById('sched-title').value.trim();
-    var start = document.getElementById('sched-start').value;
-    var end = document.getElementById('sched-end').value;
+    var start = getTimeFromSelects('sched-start');
+    var end = getTimeFromSelects('sched-end');
     var domain = document.getElementById('sched-domain').value;
     if (!title) return;
 
@@ -4516,8 +4569,18 @@
 <h3 id="sched-modal-title">Add Time Block</h3>
 <div class="sched-field"><label>What</label><input type="text" id="sched-title" placeholder="Meeting, creative block, etc."></div>
 <div class="sched-time-row">
-<div class="sched-field"><label>Start</label><input type="time" id="sched-start"></div>
-<div class="sched-field"><label>End</label><input type="time" id="sched-end"></div>
+<div class="sched-field"><label>Start</label>
+<div class="sched-time-selects" id="sched-start-wrap">
+<select id="sched-start-h"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select>
+<select id="sched-start-m"><option value="00">00</option><option value="15">15</option><option value="30">30</option><option value="45">45</option></select>
+<select id="sched-start-ap"><option>AM</option><option>PM</option></select>
+</div></div>
+<div class="sched-field"><label>End</label>
+<div class="sched-time-selects" id="sched-end-wrap">
+<select id="sched-end-h"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select>
+<select id="sched-end-m"><option value="00">00</option><option value="15">15</option><option value="30">30</option><option value="45">45</option></select>
+<select id="sched-end-ap"><option>AM</option><option>PM</option></select>
+</div></div>
 </div>
 <div class="sched-field"><label>Domain</label>
 <select id="sched-domain"><option>Personal</option><option>SessionCraft</option><option>JCT</option><option>Tennis</option><option>Music</option><option>ACE</option><option>Family</option><option>Health</option><option>Work</option></select>
