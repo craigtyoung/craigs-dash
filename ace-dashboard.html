@@ -498,25 +498,113 @@ body.light .time-selects select option { background: #f4f2fc; color: var(--text-
   color: var(--text-tertiary); cursor: pointer; transition: all 0.25s;
 }
 .project-filter.active { color: var(--purple-bright); background: var(--purple-soft); border-color: rgba(196,161,255,0.2); }
-.project-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-@media (max-width: 768px) { .project-grid { grid-template-columns: 1fr; } }
-.project-card {
-  background: var(--bg-card); border: 1px solid var(--border-subtle);
-  border-radius: 16px; padding: 1.5rem; transition: all 0.3s; cursor: default;
-  display: flex; flex-direction: column; gap: 0.5rem;
+/* ─── PROJECTS TAB ─── */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 0.5rem;
 }
-.project-card:hover { border-color: var(--border-glow); background: var(--bg-card-hover); transform: translateY(-2px); }
-.project-card-top { display: flex; align-items: center; justify-content: space-between; }
-.project-card-name { font-family: var(--font-display); font-size: 1.3rem; font-weight: 500; display: flex; align-items: center; gap: 0.6rem; }
-.project-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.project-card-desc { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; }
-.project-card-link {
-  font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.06em;
-  color: var(--purple-bright); text-decoration: none; opacity: 0.7;
-  transition: opacity 0.2s; margin-top: 0.5rem;
+@media (max-width: 680px) {
+  .projects-grid { grid-template-columns: 1fr; }
 }
-.project-card-link:hover { opacity: 1; }
-.project-local-note { font-family: var(--font-mono); font-size: 0.55rem; color: var(--text-tertiary); }
+.proj-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  overflow: hidden;
+  transition: all 0.3s;
+  cursor: default;
+  position: relative;
+}
+.proj-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-glow);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+}
+.proj-card.clickable { cursor: pointer; }
+.proj-image-wrap {
+  width: 100%;
+  aspect-ratio: 16/9;
+  position: relative;
+  overflow: hidden;
+}
+.proj-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.55);
+  user-select: none;
+}
+.proj-status-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  font-size: 0.62rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.22rem 0.65rem;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  font-weight: 500;
+}
+.proj-status-badge.active { background: rgba(126,207,126,0.22); color: var(--moving); border: 1px solid rgba(126,207,126,0.3); }
+.proj-status-badge.building { background: rgba(196,161,255,0.22); color: var(--purple-bright); border: 1px solid rgba(196,161,255,0.3); }
+.proj-status-badge.paused { background: rgba(232,197,90,0.2); color: var(--yellow); border: 1px solid rgba(232,197,90,0.3); }
+.proj-status-badge.parked { background: rgba(200,190,230,0.13); color: var(--text-tertiary); border: 1px solid var(--border-subtle); }
+.proj-body {
+  padding: 1.25rem 1.4rem 1.4rem;
+}
+.proj-name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.2;
+  margin-bottom: 0.35rem;
+}
+.proj-purpose {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin-bottom: 0.8rem;
+}
+.proj-link {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--purple-bright);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.proj-link:hover { color: var(--teal); }
+.proj-local-note {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-tertiary);
+  margin-top: 0.3rem;
+}
+.proj-domain-tag {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.55rem;
+  border-radius: 20px;
+  margin-top: 0.5rem;
+}
 
 /* ═══════════════════════════════════════════════════════
    TAB 3: OUTREACH
@@ -902,7 +990,7 @@ body.light .time-group select option { background: #f4f2fc; }
       <button class="project-filter" data-filter="paused">Paused</button>
     </div>
   </div>
-  <div class="project-grid" id="project-grid"></div>
+  <div class="projects-grid" id="project-grid"></div>
 </div>
 </div>
 
@@ -1682,13 +1770,93 @@ window.deleteIdea = deleteIdea;
    PROJECTS
    ─────────────────────────────────────────────────────── */
 var PROJECTS = [
-  { name: 'SessionCraft', desc: 'Session architecture platform for guided experiences', status: 'active', color: 'var(--purple-bright)', url: 'https://sessioncraft.app' },
-  { name: 'SessionCraft Voice', desc: 'Recorded guided meditation production studio', status: 'active', color: 'var(--purple-mid)', url: 'https://voice.sessioncraft.app' },
-  { name: 'Joshua Creek Tennis', desc: 'Tennis club operations and expansion', status: 'active', color: 'var(--teal)', url: null },
-  { name: 'Craig Young Music', desc: 'Original compositions for guided experiences', status: 'active', color: 'var(--moving)', url: 'https://craigyoungmusic.com' },
-  { name: 'Health Compass', desc: 'Wellness tracking \u2014 exercise, supplements, sleep', status: 'active', color: 'var(--red)', url: null, localUrl: 'http://localhost:3001' },
-  { name: 'Task Board', desc: 'Kanban task management', status: 'active', color: 'var(--yellow)', url: null, localUrl: 'http://localhost:3004' },
-  { name: 'Outreach CRM', desc: 'Practitioner and organization outreach tracking', status: 'active', color: 'var(--connecting)', url: null, localUrl: 'http://localhost:3002' }
+  {
+    name: 'SessionCraft',
+    initials: 'SC',
+    gradient: 'linear-gradient(135deg, #3d1f7a 0%, #7c5cbf 60%, #c4a1ff 100%)',
+    purpose: 'Session architecture platform for guided experiences — your primary lever.',
+    status: 'active',
+    domain: 'Music & Tech',
+    domainColor: 'purple',
+    url: 'https://sessioncraft.app'
+  },
+  {
+    name: 'SessionCraft Voice',
+    initials: 'SV',
+    gradient: 'linear-gradient(135deg, #2a1060 0%, #a07de8 60%, #e0c8ff 100%)',
+    purpose: 'AI-powered guided meditation production studio — potentially bigger than Core.',
+    status: 'active',
+    domain: 'Music & Tech',
+    domainColor: 'purple',
+    url: 'https://voice.sessioncraft.app'
+  },
+  {
+    name: 'Joshua Creek Tennis',
+    initials: 'JC',
+    gradient: 'linear-gradient(135deg, #0a1830 0%, #1d5090 55%, #80b4e8 100%)',
+    purpose: '20-year tennis business — morphing into something new. Victor remote, David stepping up.',
+    status: 'active',
+    domain: 'Business',
+    domainColor: 'blue'
+  },
+  {
+    name: 'Craig Young Music',
+    initials: 'CY',
+    gradient: 'linear-gradient(135deg, #0a3040 0%, #3da8a8 60%, #8eedee 100%)',
+    purpose: 'Original compositions for guided experiences — the soul of everything.',
+    status: 'active',
+    domain: 'Music',
+    domainColor: 'teal',
+    url: 'https://craigyoungmusic.com'
+  },
+  {
+    name: 'Health Compass',
+    initials: 'HC',
+    gradient: 'linear-gradient(135deg, #2a0a0a 0%, #8a3030 55%, #e85a6f 100%)',
+    purpose: 'Wellness tracking — exercise, blood sugar, sleep, breathwork, supplements.',
+    status: 'active',
+    domain: 'Health & Tech',
+    domainColor: 'red',
+    localUrl: 'http://localhost:3001'
+  },
+  {
+    name: 'Task Board',
+    initials: 'TB',
+    gradient: 'linear-gradient(135deg, #2a2010 0%, #8a7020 55%, #e8c55a 100%)',
+    purpose: 'Kanban task management — today, this week, this month.',
+    status: 'active',
+    domain: 'Productivity',
+    domainColor: 'yellow',
+    localUrl: 'http://localhost:3004'
+  },
+  {
+    name: 'Outreach CRM',
+    initials: 'OR',
+    gradient: 'linear-gradient(135deg, #2a1020 0%, #8a3060 55%, #f0a0c0 100%)',
+    purpose: 'Practitioner and organization outreach tracking for SessionCraft.',
+    status: 'active',
+    domain: 'Sales',
+    domainColor: 'pink',
+    localUrl: 'http://localhost:3002'
+  },
+  {
+    name: 'Starlight',
+    initials: '\u2726',
+    gradient: 'linear-gradient(135deg, #2a2010 0%, #b89020 55%, #f0d060 100%)',
+    purpose: "YouTube children's meditation channel — AI voices, growing audience.",
+    status: 'paused',
+    domain: 'Creative',
+    domainColor: 'yellow'
+  },
+  {
+    name: 'Sacred Sanctuary',
+    initials: 'SS',
+    gradient: 'linear-gradient(135deg, #1a2a3a 0%, #2e7a8a 55%, #7eccd4 100%)',
+    purpose: "Psychotherapeutic readings over Craig's music — with Boris Walter.",
+    status: 'paused',
+    domain: 'Music',
+    domainColor: 'teal'
+  }
 ];
 
 var _projectFilter = 'all';
@@ -1699,21 +1867,62 @@ function renderProjects() {
     if (_projectFilter === 'all') return true;
     return p.status === _projectFilter;
   });
+
+  var domainBgMap = {
+    'purple': 'rgba(196,161,255,0.12)',
+    'teal': 'rgba(94,196,196,0.12)',
+    'yellow': 'rgba(232,197,90,0.12)',
+    'green': 'rgba(126,207,126,0.12)',
+    'pink': 'rgba(240,160,192,0.12)',
+    'blue': 'rgba(128,180,232,0.12)',
+    'red': 'rgba(232,90,111,0.12)'
+  };
+  var domainColorMap = {
+    'purple': 'var(--purple-bright)',
+    'teal': 'var(--teal)',
+    'yellow': 'var(--yellow)',
+    'green': 'var(--moving)',
+    'pink': 'var(--connecting)',
+    'blue': '#80b4e8',
+    'red': 'var(--red)'
+  };
+
   var html = '';
   filtered.forEach(function(p) {
-    html += '<div class="project-card">';
-    html += '<div class="project-card-top">';
-    html += '<div class="project-card-name"><div class="project-status-dot" style="background:' + p.color + '"></div>' + escHtml(p.name) + '</div>';
+    var hasLink = p.url || p.localUrl;
+    var clickUrl = p.url || p.localUrl;
+    var cardClick = hasLink ? ' onclick="window.open(\'' + clickUrl + '\', \'_blank\')"' : '';
+    var clickClass = hasLink ? ' clickable' : '';
+
+    html += '<div class="proj-card' + clickClass + '"' + cardClick + '>';
+
+    // Gradient image with monogram
+    html += '<div class="proj-image-wrap">';
+    html += '<div class="proj-image-placeholder" style="background:' + p.gradient + '">' + escHtml(p.initials) + '</div>';
+    html += '<div class="proj-status-badge ' + p.status + '">' + p.status + '</div>';
     html += '</div>';
-    html += '<div class="project-card-desc">' + escHtml(p.desc) + '</div>';
+
+    // Body
+    html += '<div class="proj-body">';
+    html += '<div class="proj-name">' + escHtml(p.name) + '</div>';
+    html += '<div class="proj-purpose">' + escHtml(p.purpose) + '</div>';
+
     if (p.url) {
-      html += '<a class="project-card-link" href="' + p.url + '" target="_blank">' + p.url + ' &#8594;</a>';
+      html += '<a class="proj-link" href="' + p.url + '" target="_blank" onclick="event.stopPropagation()">' + p.url + ' &#8594;</a>';
     }
     if (p.localUrl) {
-      html += '<div class="project-local-note">' + p.localUrl + ' <span style="opacity:0.6;">(desktop only)</span></div>';
+      html += '<div class="proj-local-note">' + p.localUrl + ' (desktop only)</div>';
     }
-    html += '</div>';
+
+    // Domain tag
+    var dbg = domainBgMap[p.domainColor] || 'var(--bg-card)';
+    var dcol = domainColorMap[p.domainColor] || 'var(--text-tertiary)';
+    html += '<div class="proj-domain-tag" style="background:' + dbg + ';color:' + dcol + ';border:1px solid ' + dbg + '">' + escHtml(p.domain) + '</div>';
+
+    html += '</div>'; // body
+    html += '</div>'; // card
   });
+
   container.innerHTML = html;
 }
 
