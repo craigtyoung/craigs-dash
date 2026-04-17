@@ -2647,6 +2647,11 @@ async function loadCyclingData() {
       return;
     }
 
+    if (!data.week || !data.season || !data.last_year_same_period) {
+      document.getElementById('cycling-error').style.display = 'block';
+      return;
+    }
+
     // Weekly progress
     const pct = Math.min(100, Math.round((data.week.distance_km / data.weekly_target_km) * 100));
     document.getElementById('cycling-week-dist').textContent = `${data.week.distance_km} km`;
@@ -2659,10 +2664,11 @@ async function loadCyclingData() {
     // Last ride
     const lr = data.last_ride;
     if (lr) {
+      const safeName = (lr.name || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       const lrHrs = Math.floor(lr.time_minutes / 60);
       const lrMin = lr.time_minutes % 60;
       document.getElementById('cycling-last-ride').innerHTML = `
-        <div style="font-weight:600;margin-bottom:0.25rem">${lr.name}</div>
+        <div style="font-weight:600;margin-bottom:0.25rem">${safeName}</div>
         <div style="color:#888;font-size:0.85rem">${lr.date}</div>
         <div style="margin-top:0.5rem;display:flex;gap:1rem;flex-wrap:wrap;font-size:0.9rem">
           <span>📍 ${lr.distance_km} km</span>
