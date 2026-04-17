@@ -1,6 +1,7 @@
 'use strict';
 
 const http  = require('http');
+const https = require('https');
 const fs    = require('fs');
 const path  = require('path');
 const { createClient } = require('@supabase/supabase-js');
@@ -51,6 +52,44 @@ function readBody(req) {
     });
     req.on('error', reject);
   });
+}
+
+function stravaRequest(options, postData) {
+  return new Promise((resolve, reject) => {
+    const req = https.request(options, (res) => {
+      let body = '';
+      res.on('data', chunk => body += chunk);
+      res.on('end', () => {
+        try { resolve(JSON.parse(body)); }
+        catch (e) { reject(new Error('Invalid JSON from Strava')); }
+      });
+    });
+    req.on('error', reject);
+    if (postData) req.write(postData);
+    req.end();
+  });
+}
+
+async function getStravaAccessToken() {
+  const postData = new URLSearchParams({
+    client_id:     process.env.STRAVA_CLIENT_ID,
+    client_secret: process.env.STRAVA_CLIENT_SECRET,
+    refresh_token: process.env.STRAVA_REFRESH_TOKEN,
+    grant_type:    'refresh_token',
+  }).toString();
+
+  const data = await stravaRequest({
+    hostname: 'www.strava.com',
+    path:     '/oauth/token',
+    method:   'POST',
+    headers: {
+      'Content-Type':   'application/x-www-form-urlencoded',
+      'Content-Length': Buffer.byteLength(postData),
+    },
+  }, postData);
+
+  if (!data.access_token) throw new Error('Token refresh failed: ' + JSON.stringify(data));
+  return data.access_token;
 }
 
 function json(res, status, data) {
