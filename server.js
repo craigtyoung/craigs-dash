@@ -92,6 +92,57 @@ async function getStravaAccessToken() {
   return data.access_token;
 }
 
+async function fetchStravaActivities(accessToken, afterEpoch, beforeEpoch) {
+  const params = new URLSearchParams({ after: afterEpoch, before: beforeEpoch, per_page: 200 });
+  const data = await stravaRequest({
+    hostname: 'www.strava.com',
+    path:     `/api/v3/athlete/activities?${params}`,
+    method:   'GET',
+    headers:  { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!Array.isArray(data)) throw new Error('Unexpected Strava response: ' + JSON.stringify(data));
+  return data.filter(a => a.type === 'Ride' || a.sport_type === 'Ride');
+}
+
+function buildStravaSummary(weekRides, seasonRides, lastYearRides) {
+  const sum = (rides, field) => rides.reduce((acc, r) => acc + (r[field] || 0), 0);
+
+  const weekDistKm  = Math.round(sum(weekRides, 'distance') / 10) / 100;
+  const weekTimeMin = Math.round(sum(weekRides, 'moving_time') / 60);
+  const weekElevM   = Math.round(sum(weekRides, 'total_elevation_gain'));
+
+  const last = weekRides
+    .concat(seasonRides)
+    .sort((a, b) => new Date(b.start_date) - new Date(a.start_date))[0];
+
+  return {
+    week: {
+      distance_km:   weekDistKm,
+      time_minutes:  weekTimeMin,
+      elevation_m:   weekElevM,
+      ride_count:    weekRides.length,
+    },
+    last_ride: last ? {
+      date:          last.start_date.split('T')[0],
+      name:          last.name,
+      distance_km:   Math.round(last.distance / 10) / 100,
+      time_minutes:  Math.round(last.moving_time / 60),
+      elevation_m:   Math.round(last.total_elevation_gain),
+      avg_speed_kmh: Math.round((last.average_speed * 3.6) * 10) / 10,
+    } : null,
+    season: {
+      distance_km: Math.round(sum(seasonRides, 'distance') / 10) / 100,
+      ride_count:  seasonRides.length,
+      elevation_m: Math.round(sum(seasonRides, 'total_elevation_gain')),
+    },
+    last_year_same_period: {
+      distance_km: Math.round(sum(lastYearRides, 'distance') / 10) / 100,
+      ride_count:  lastYearRides.length,
+    },
+    weekly_target_km: 175,
+  };
+}
+
 function json(res, status, data) {
   res.writeHead(status, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify(data));
