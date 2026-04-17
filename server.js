@@ -241,6 +241,38 @@ self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => n
     return;
   }
 
+  // ── Strava summary ──
+  if (req.url === '/api/strava/summary' && req.method === 'GET') {
+    try {
+      const accessToken = await getStravaAccessToken();
+
+      const now       = new Date();
+      const monday    = new Date(now);
+      monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+      monday.setHours(0, 0, 0, 0);
+
+      const jan1This  = new Date(now.getFullYear(), 0, 1);
+      const jan1Last  = new Date(now.getFullYear() - 1, 0, 1);
+      const todayLastYear = new Date(now);
+      todayLastYear.setFullYear(now.getFullYear() - 1);
+
+      const toEpoch = d => Math.floor(d.getTime() / 1000);
+
+      const [weekRides, seasonRides, lastYearRides] = await Promise.all([
+        fetchStravaActivities(accessToken, toEpoch(monday),   toEpoch(now)),
+        fetchStravaActivities(accessToken, toEpoch(jan1This), toEpoch(now)),
+        fetchStravaActivities(accessToken, toEpoch(jan1Last), toEpoch(todayLastYear)),
+      ]);
+
+      const summary = buildStravaSummary(weekRides, seasonRides, lastYearRides);
+      json(res, 200, summary);
+    } catch (e) {
+      console.error('Strava error:', e.message);
+      json(res, 200, { error: true, message: e.message });
+    }
+    return;
+  }
+
   res.writeHead(404); res.end('Not found');
 });
 
