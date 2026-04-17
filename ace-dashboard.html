@@ -865,6 +865,7 @@ body.light .time-group select option { background: #f4f2fc; }
       <button class="nav-tab" data-tab="outreach">Outreach</button>
       <button class="nav-tab" data-tab="health">Health</button>
       <button class="nav-tab" data-tab="wisdom">Wisdom</button>
+      <button class="nav-tab" data-tab="cycling">🚴 Cycling</button>
     </div>
     <div class="nav-right">
       <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">&#9790;</button>
@@ -887,6 +888,7 @@ body.light .time-group select option { background: #f4f2fc; }
 <div class="more-drawer" id="more-drawer">
   <div class="more-drawer-grid">
     <button class="more-drawer-btn gold" onclick="switchTab('wisdom');closeMoreDrawer()">&#10022; Wisdom</button>
+    <button class="more-drawer-btn" onclick="switchTab('cycling');closeMoreDrawer()">🚴 Cycling</button>
     <button class="more-drawer-btn" onclick="toggleTheme();closeMoreDrawer()">&#9790; Theme</button>
   </div>
 </div>
@@ -1142,6 +1144,39 @@ body.light .time-group select option { background: #f4f2fc; }
   </div>
 </div>
 
+<div class="tab-pane" id="pane-cycling">
+  <div id="cycling-loading" style="text-align:center;padding:2rem;color:#888">Loading Strava data…</div>
+  <div id="cycling-content" style="display:none">
+
+    <!-- Weekly Progress -->
+    <div class="card" style="margin-bottom:1rem">
+      <h3 style="margin:0 0 0.75rem;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">This Week</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+        <span id="cycling-week-dist" style="font-size:1.4rem;font-weight:700"></span>
+        <span style="color:#888;font-size:0.85rem">/ 175 km target</span>
+      </div>
+      <div style="background:#1e1e2e;border-radius:6px;height:10px;overflow:hidden">
+        <div id="cycling-week-bar" style="height:100%;background:linear-gradient(90deg,#f97316,#fb923c);border-radius:6px;transition:width 0.6s ease"></div>
+      </div>
+      <div id="cycling-week-meta" style="margin-top:0.5rem;font-size:0.8rem;color:#888"></div>
+    </div>
+
+    <!-- Last Ride -->
+    <div class="card" style="margin-bottom:1rem">
+      <h3 style="margin:0 0 0.75rem;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Last Ride</h3>
+      <div id="cycling-last-ride"></div>
+    </div>
+
+    <!-- Season vs Last Year -->
+    <div class="card">
+      <h3 style="margin:0 0 0.75rem;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Season</h3>
+      <div id="cycling-season"></div>
+    </div>
+
+  </div>
+  <div id="cycling-error" style="display:none;text-align:center;padding:2rem;color:#888">Strava data unavailable</div>
+</div>
+
 
 <!-- ═══════════════════════════════════════════════════════
      SCHEDULE MODAL
@@ -1359,6 +1394,8 @@ function switchTab(tab) {
   });
   // Special handling for wisdom tab
   if (tab === 'wisdom') initPinScreen();
+  // Load cycling data when tab opens
+  if (tab === 'cycling') loadCyclingData();
 }
 window.switchTab = switchTab;
 
@@ -2593,6 +2630,71 @@ document.getElementById('sched-modal').addEventListener('click', function(e) {
 // Register service worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(function() {});
+}
+
+/* ───────────────────────────────────────────────────────
+   CYCLING TAB
+   ─────────────────────────────────────────────────────── */
+async function loadCyclingData() {
+  try {
+    const res  = await fetch('/api/strava/summary');
+    const data = await res.json();
+
+    document.getElementById('cycling-loading').style.display = 'none';
+
+    if (data.error) {
+      document.getElementById('cycling-error').style.display = 'block';
+      return;
+    }
+
+    // Weekly progress
+    const pct = Math.min(100, Math.round((data.week.distance_km / data.weekly_target_km) * 100));
+    document.getElementById('cycling-week-dist').textContent = `${data.week.distance_km} km`;
+    document.getElementById('cycling-week-bar').style.width  = `${pct}%`;
+    const hrs = Math.floor(data.week.time_minutes / 60);
+    const min = data.week.time_minutes % 60;
+    document.getElementById('cycling-week-meta').textContent =
+      `${data.week.ride_count} rides · ${hrs}h ${min}m · ${data.week.elevation_m.toLocaleString()}m ↑`;
+
+    // Last ride
+    const lr = data.last_ride;
+    if (lr) {
+      const lrHrs = Math.floor(lr.time_minutes / 60);
+      const lrMin = lr.time_minutes % 60;
+      document.getElementById('cycling-last-ride').innerHTML = `
+        <div style="font-weight:600;margin-bottom:0.25rem">${lr.name}</div>
+        <div style="color:#888;font-size:0.85rem">${lr.date}</div>
+        <div style="margin-top:0.5rem;display:flex;gap:1rem;flex-wrap:wrap;font-size:0.9rem">
+          <span>📍 ${lr.distance_km} km</span>
+          <span>⏱ ${lrHrs}h ${lrMin}m</span>
+          <span>⛰ ${lr.elevation_m}m</span>
+          <span>⚡ ${lr.avg_speed_kmh} km/h</span>
+        </div>`;
+    }
+
+    // Season vs last year
+    const diff = Math.round(data.season.distance_km - data.last_year_same_period.distance_km);
+    const diffLabel = diff >= 0
+      ? `<span style="color:#4ade80">↑ ${diff} km ahead of last year's pace</span>`
+      : `<span style="color:#f87171">↓ ${Math.abs(diff)} km behind last year's pace</span>`;
+    document.getElementById('cycling-season').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem">
+        <div>
+          <div style="font-size:1.3rem;font-weight:700">${data.season.distance_km.toLocaleString()} km</div>
+          <div style="color:#888;font-size:0.8rem">2026 season · ${data.season.ride_count} rides</div>
+        </div>
+        <div>
+          <div style="font-size:1.3rem;font-weight:700">${data.last_year_same_period.distance_km.toLocaleString()} km</div>
+          <div style="color:#888;font-size:0.8rem">2025 at this point · ${data.last_year_same_period.ride_count} rides</div>
+        </div>
+      </div>
+      <div style="font-size:0.9rem">${diffLabel}</div>`;
+
+    document.getElementById('cycling-content').style.display = 'block';
+  } catch (e) {
+    document.getElementById('cycling-loading').style.display = 'none';
+    document.getElementById('cycling-error').style.display   = 'block';
+  }
 }
 
 })();
