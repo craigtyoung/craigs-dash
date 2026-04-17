@@ -241,38 +241,6 @@ self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => n
     return;
   }
 
-  // ── Strava OAuth callback (temporary — remove after first use) ──
-  if (req.url.startsWith('/auth/strava/callback') && req.method === 'GET') {
-    const code = new URL(req.url, 'https://x').searchParams.get('code');
-    if (!code) { json(res, 400, { error: 'No code' }); return; }
-    try {
-      const postData = new URLSearchParams({
-        client_id:     process.env.STRAVA_CLIENT_ID,
-        client_secret: process.env.STRAVA_CLIENT_SECRET,
-        code,
-        grant_type: 'authorization_code',
-      }).toString();
-      const data = await stravaRequest({
-        hostname: 'www.strava.com',
-        path:     '/oauth/token',
-        method:   'POST',
-        headers: {
-          'Content-Type':   'application/x-www-form-urlencoded',
-          'Content-Length': Buffer.byteLength(postData),
-        },
-      }, postData);
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(`<pre style="font-size:1.2rem;padding:2rem">
-COPY THIS REFRESH TOKEN into Railway env var STRAVA_REFRESH_TOKEN:
-
-${data.refresh_token || JSON.stringify(data)}
-</pre>`);
-    } catch (e) {
-      json(res, 500, { error: e.message });
-    }
-    return;
-  }
-
   // ── Strava summary ──
   if (req.url === '/api/strava/summary' && req.method === 'GET') {
     try {
