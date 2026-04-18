@@ -1146,7 +1146,28 @@ body.light .time-group select option { background: #f4f2fc; }
 
 <div class="tab-pane" id="pane-cycling">
   <div id="cycling-loading" style="text-align:center;padding:2rem;color:#888">Loading Strava data…</div>
+  <div id="cycling-error" style="display:none;text-align:center;padding:2rem;color:#888">Strava data unavailable</div>
   <div id="cycling-content" style="display:none">
+
+    <!-- Season Stats Bar -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin-bottom:1rem">
+      <div class="card" style="text-align:center;padding:0.75rem 0.5rem">
+        <div id="cs-km" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
+        <div style="font-size:0.7rem;color:#888;margin-top:0.2rem">km</div>
+      </div>
+      <div class="card" style="text-align:center;padding:0.75rem 0.5rem">
+        <div id="cs-hrs" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
+        <div style="font-size:0.7rem;color:#888;margin-top:0.2rem">hours</div>
+      </div>
+      <div class="card" style="text-align:center;padding:0.75rem 0.5rem">
+        <div id="cs-elev" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
+        <div style="font-size:0.7rem;color:#888;margin-top:0.2rem">elev (m)</div>
+      </div>
+      <div class="card" style="text-align:center;padding:0.75rem 0.5rem">
+        <div id="cs-rides" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
+        <div style="font-size:0.7rem;color:#888;margin-top:0.2rem">rides</div>
+      </div>
+    </div>
 
     <!-- Weekly Progress -->
     <div class="card" style="margin-bottom:1rem">
@@ -1156,25 +1177,63 @@ body.light .time-group select option { background: #f4f2fc; }
         <span style="color:#888;font-size:0.85rem">/ 175 km target</span>
       </div>
       <div style="background:#1e1e2e;border-radius:6px;height:10px;overflow:hidden">
-        <div id="cycling-week-bar" style="height:100%;background:linear-gradient(90deg,#f97316,#fb923c);border-radius:6px;transition:width 0.6s ease"></div>
+        <div id="cycling-week-bar" style="height:100%;background:linear-gradient(90deg,#f97316,#fb923c);border-radius:6px;transition:width 0.6s ease;width:0%"></div>
       </div>
       <div id="cycling-week-meta" style="margin-top:0.5rem;font-size:0.8rem;color:#888"></div>
     </div>
 
-    <!-- Last Ride -->
+    <!-- Weekly Volume Chart -->
     <div class="card" style="margin-bottom:1rem">
-      <h3 style="margin:0 0 0.75rem;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Last Ride</h3>
-      <div id="cycling-last-ride"></div>
+      <h3 style="margin:0 0 0.75rem;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Weekly Volume — Last 12 Weeks</h3>
+      <canvas id="cycling-volume-chart" height="180"></canvas>
     </div>
 
     <!-- Season vs Last Year -->
+    <div class="card" style="margin-bottom:1rem">
+      <h3 style="margin:0 0 0.75rem;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Season Cumulative — 2026 vs 2025</h3>
+      <canvas id="cycling-cumulative-chart" height="180"></canvas>
+    </div>
+
+    <!-- HR Trend -->
+    <div class="card" id="cycling-hr-card" style="margin-bottom:1rem;display:none">
+      <h3 style="margin:0 0 0.25rem;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">HR Trend — Last 10 Rides</h3>
+      <p style="margin:0 0 0.75rem;font-size:0.75rem;color:#666">Downward trend = getting fitter</p>
+      <canvas id="cycling-hr-chart" height="140"></canvas>
+    </div>
+
+    <!-- Personal Bests -->
+    <div class="card" style="margin-bottom:1rem">
+      <h3 style="margin:0 0 0.75rem;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Season Bests</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+        <div style="background:#1e1e2e;border-radius:8px;padding:0.75rem">
+          <div style="font-size:0.7rem;color:#888;margin-bottom:0.25rem">🏅 Longest Ride</div>
+          <div id="pb-longest" style="font-size:1.1rem;font-weight:700"></div>
+        </div>
+        <div style="background:#1e1e2e;border-radius:8px;padding:0.75rem">
+          <div style="font-size:0.7rem;color:#888;margin-bottom:0.25rem">⛰ Most Elevation</div>
+          <div id="pb-elev" style="font-size:1.1rem;font-weight:700"></div>
+        </div>
+        <div style="background:#1e1e2e;border-radius:8px;padding:0.75rem">
+          <div style="font-size:0.7rem;color:#888;margin-bottom:0.25rem">⚡ Best Avg Speed</div>
+          <div id="pb-speed" style="font-size:1.1rem;font-weight:700"></div>
+        </div>
+        <div style="background:#1e1e2e;border-radius:8px;padding:0.75rem">
+          <div style="font-size:0.7rem;color:#888;margin-bottom:0.25rem">🔥 Best Streak</div>
+          <div id="pb-streak" style="font-size:1.1rem;font-weight:700"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- All Season Rides -->
     <div class="card">
-      <h3 style="margin:0 0 0.75rem;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Season</h3>
-      <div id="cycling-season"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+        <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">All Season Rides</h3>
+        <button id="rides-toggle" onclick="toggleRidesList()" style="background:#1e1e2e;border:none;color:#888;font-size:0.8rem;padding:0.3rem 0.6rem;border-radius:4px;cursor:pointer"></button>
+      </div>
+      <div id="rides-list" style="display:none"></div>
     </div>
 
   </div>
-  <div id="cycling-error" style="display:none;text-align:center;padding:2rem;color:#888">Strava data unavailable</div>
 </div>
 
 
