@@ -842,6 +842,7 @@ body.light ::-webkit-scrollbar-thumb { background: rgba(90,65,180,0.12); }
 body.light .time-group select { color: var(--text-primary); }
 body.light .time-group select option { background: #f4f2fc; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -2694,24 +2695,47 @@ if ('serviceWorker' in navigator) {
 /* ───────────────────────────────────────────────────────
    CYCLING TAB
    ─────────────────────────────────────────────────────── */
+// Chart instances — stored so we can destroy before recreating
+let _volChart = null, _cumChart = null, _hrChart = null;
+
+function destroyCyclingCharts() {
+  if (_volChart) { _volChart.destroy(); _volChart = null; }
+  if (_cumChart) { _cumChart.destroy(); _cumChart = null; }
+  if (_hrChart)  { _hrChart.destroy();  _hrChart = null; }
+}
+
+function toggleRidesList() {
+  const list = document.getElementById('rides-list');
+  const btn  = document.getElementById('rides-toggle');
+  const open = list.style.display === 'none';
+  list.style.display = open ? 'block' : 'none';
+  btn.textContent    = open ? 'Hide ↑' : (btn.dataset.label || 'Show ↓');
+}
+
 async function loadCyclingData() {
+  destroyCyclingCharts();
+  document.getElementById('cycling-loading').style.display = 'block';
+  document.getElementById('cycling-content').style.display = 'none';
+  document.getElementById('cycling-error').style.display   = 'none';
+
   try {
     const res  = await fetch('/api/strava/summary');
     const data = await res.json();
 
     document.getElementById('cycling-loading').style.display = 'none';
 
-    if (data.error) {
+    if (data.error || !data.week || !data.season || !data.last_year_same_period) {
       document.getElementById('cycling-error').style.display = 'block';
       return;
     }
 
-    if (!data.week || !data.season || !data.last_year_same_period) {
-      document.getElementById('cycling-error').style.display = 'block';
-      return;
-    }
+    // ── Season Stats Bar ──
+    document.getElementById('cs-km').textContent    = data.season.distance_km.toLocaleString();
+    document.getElementById('cs-hrs').textContent   = data.season.total_hours;
+    document.getElementById('cs-elev').textContent  = data.season.elevation_m.toLocaleString();
+    document.getElementById('cs-rides').textContent = data.season.ride_count;
 
-    // Weekly progress
+    // ── Weekly Progress ──
     const pct = Math.min(100, Math.round((data.week.distance_km / data.weekly_target_km) * 100));
     document.getElementById('cycling-week-dist').textContent = `${data.week.distance_km} km`;
     document.getElementById('cycling-week-bar').style.width  = `${pct}%`;
@@ -2720,40 +2744,140 @@ async function loadCyclingData() {
     document.getElementById('cycling-week-meta').textContent =
       `${data.week.ride_count} rides · ${hrs}h ${min}m · ${data.week.elevation_m.toLocaleString()}m ↑`;
 
-    // Last ride
-    const lr = data.last_ride;
-    if (lr) {
-      const safeName = (lr.name || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      const lrHrs = Math.floor(lr.time_minutes / 60);
-      const lrMin = lr.time_minutes % 60;
-      document.getElementById('cycling-last-ride').innerHTML = `
-        <div style="font-weight:600;margin-bottom:0.25rem">${safeName}</div>
-        <div style="color:#888;font-size:0.85rem">${lr.date}</div>
-        <div style="margin-top:0.5rem;display:flex;gap:1rem;flex-wrap:wrap;font-size:0.9rem">
-          <span>📍 ${lr.distance_km} km</span>
-          <span>⏱ ${lrHrs}h ${lrMin}m</span>
-          <span>⛰ ${lr.elevation_m}m</span>
-          <span>⚡ ${lr.avg_speed_kmh} km/h</span>
-        </div>`;
+    // ── Chart shared defaults ──
+    const chartDefaults = {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#666', font: { size: 10 } }, grid: { color: '#1e1e2e' } },
+        y: { ticks: { color: '#666', font: { size: 10 } }, grid: { color: '#1e1e2e' } },
+      },
+    };
+
+    // ── Weekly Volume Chart ──
+    _volChart = new Chart(document.getElementById('cycling-volume-chart'), {
+      type: 'bar',
+      data: {
+        labels:   data.weekly_volumes.map(w => w.label),
+        datasets: [{
+          data:            data.weekly_volumes.map(w => w.km),
+          backgroundColor: data.weekly_volumes.map((_, i) =>
+            i === data.weekly_volumes.length - 1 ? '#f97316' : '#2dd4bf44'),
+          borderColor: data.weekly_volumes.map((_, i) =>
+            i === data.weekly_volumes.length - 1 ? '#f97316' : '#2dd4bf'),
+          borderWidth: 1,
+          borderRadius: 4,
+        }],
+      },
+      options: {
+        ...chartDefaults,
+        scales: {
+          ...chartDefaults.scales,
+          y: { ...chartDefaults.scales.y, title: { display: true, text: 'km', color: '#666' } },
+        },
+      },
+    });
+
+    // ── Season Cumulative Chart ──
+    _cumChart = new Chart(document.getElementById('cycling-cumulative-chart'), {
+      type: 'line',
+      data: {
+        labels:   data.cumulative_by_week.map(w => `W${w.week}`),
+        datasets: [
+          {
+            label:           '2026',
+            data:            data.cumulative_by_week.map(w => w.this_year),
+            borderColor:     '#f97316',
+            backgroundColor: 'rgba(249,115,22,0.08)',
+            borderWidth:     2,
+            fill:            true,
+            tension:         0.3,
+            pointRadius:     2,
+          },
+          {
+            label:       '2025',
+            data:        data.cumulative_by_week.map(w => w.last_year),
+            borderColor: '#666',
+            borderDash:  [4, 4],
+            borderWidth: 1.5,
+            fill:        false,
+            tension:     0.3,
+            pointRadius: 2,
+          },
+        ],
+      },
+      options: {
+        ...chartDefaults,
+        plugins: {
+          legend: {
+            display: true,
+            labels: { color: '#888', boxWidth: 20, font: { size: 11 } },
+          },
+        },
+        scales: {
+          ...chartDefaults.scales,
+          y: { ...chartDefaults.scales.y, title: { display: true, text: 'cumulative km', color: '#666' } },
+        },
+      },
+    });
+
+    // ── HR Trend ──
+    if (data.hr_trend && data.hr_trend.length >= 3) {
+      document.getElementById('cycling-hr-card').style.display = 'block';
+      _hrChart = new Chart(document.getElementById('cycling-hr-chart'), {
+        type: 'line',
+        data: {
+          labels:   data.hr_trend.map(r => r.date.slice(5)),
+          datasets: [{
+            data:               data.hr_trend.map(r => r.avg_hr),
+            borderColor:        '#f97316',
+            borderWidth:        2,
+            tension:            0.3,
+            pointRadius:        3,
+            pointBackgroundColor: '#f97316',
+            fill:               false,
+          }],
+        },
+        options: {
+          ...chartDefaults,
+          scales: {
+            ...chartDefaults.scales,
+            y: {
+              ...chartDefaults.scales.y,
+              title: { display: true, text: 'avg HR (bpm)', color: '#666' },
+              suggestedMin: Math.min(...data.hr_trend.map(r => r.avg_hr)) - 10,
+            },
+          },
+        },
+      });
     }
 
-    // Season vs last year
-    const diff = Math.round(data.season.distance_km - data.last_year_same_period.distance_km);
-    const diffLabel = diff >= 0
-      ? `<span style="color:#4ade80">↑ ${diff} km ahead of last year's pace</span>`
-      : `<span style="color:#f87171">↓ ${Math.abs(diff)} km behind last year's pace</span>`;
-    document.getElementById('cycling-season').innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem">
-        <div>
-          <div style="font-size:1.3rem;font-weight:700">${data.season.distance_km.toLocaleString()} km</div>
-          <div style="color:#888;font-size:0.8rem">2026 season · ${data.season.ride_count} rides</div>
+    // ── Personal Bests ──
+    const pb = data.personal_bests;
+    document.getElementById('pb-longest').textContent = `${pb.longest_ride_km} km`;
+    document.getElementById('pb-elev').textContent    = `${pb.most_elevation_m.toLocaleString()} m`;
+    document.getElementById('pb-speed').textContent   = `${pb.best_avg_speed_kmh} km/h`;
+    document.getElementById('pb-streak').textContent  = `${pb.longest_streak_days} day${pb.longest_streak_days !== 1 ? 's' : ''}`;
+
+    // ── All Season Rides ──
+    const toggleBtn = document.getElementById('rides-toggle');
+    toggleBtn.textContent   = `Show all ${data.all_rides.length} rides ↓`;
+    toggleBtn.dataset.label = `Show all ${data.all_rides.length} rides ↓`;
+
+    const ridesList = document.getElementById('rides-list');
+    const safeName  = s => (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    ridesList.innerHTML = data.all_rides.map(r => {
+      const rHrs = Math.floor(r.time_minutes / 60);
+      const rMin = r.time_minutes % 60;
+      const hrStr = r.avg_hr ? ` · ♥ ${r.avg_hr}` : '';
+      return `<div style="padding:0.6rem 0;border-bottom:1px solid #1e1e2e;font-size:0.82rem">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span style="font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${safeName(r.name)}</span>
+          <span style="color:#f97316;margin-left:0.5rem;white-space:nowrap">${r.distance_km} km</span>
         </div>
-        <div>
-          <div style="font-size:1.3rem;font-weight:700">${data.last_year_same_period.distance_km.toLocaleString()} km</div>
-          <div style="color:#888;font-size:0.8rem">2025 at this point · ${data.last_year_same_period.ride_count} rides</div>
-        </div>
-      </div>
-      <div style="font-size:0.9rem">${diffLabel}</div>`;
+        <div style="color:#666;margin-top:0.15rem">${r.date} · ${rHrs}h ${rMin}m · ${r.elevation_m}m ↑ · ${r.avg_speed_kmh} km/h${hrStr}</div>
+      </div>`;
+    }).join('');
 
     document.getElementById('cycling-content').style.display = 'block';
   } catch (e) {
