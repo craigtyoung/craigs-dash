@@ -104,23 +104,114 @@ async function fetchStravaActivities(accessToken, afterEpoch, beforeEpoch) {
   return data.filter(a => a.type === 'Ride' || a.sport_type === 'Ride');
 }
 
+function getISOWeek(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
 function buildStravaSummary(weekRides, seasonRides, lastYearRides) {
+  const now = new Date();
   const sum = (rides, field) => rides.reduce((acc, r) => acc + (r[field] || 0), 0);
 
+  // ── Week ──
   const weekDistKm  = Math.round(sum(weekRides, 'distance') / 10) / 100;
   const weekTimeMin = Math.round(sum(weekRides, 'moving_time') / 60);
   const weekElevM   = Math.round(sum(weekRides, 'total_elevation_gain'));
 
-  const last = weekRides
-    .concat(seasonRides)
+  // ── Last ride (most recent across week + season) ──
+  const last = seasonRides
+    .concat(weekRides)
     .sort((a, b) => new Date(b.start_date) - new Date(a.start_date))[0];
+
+  // ── Season stats ──
+  const seasonTotalHours = Math.round(sum(seasonRides, 'moving_time') / 360) / 10;
+
+  // ── Weekly volumes (last 12 weeks) ──
+  const weeklyVolumes = [];
+  for (let i = 11; i >= 0; i--) {
+    const wStart = new Date(now);
+    wStart.setDate(now.getDate() - ((now.getDay() + 6) % 7) - (i * 7));
+    wStart.setHours(0, 0, 0, 0);
+    const wEnd = new Date(wStart);
+    wEnd.setDate(wStart.getDate() + 7);
+    const wRides = seasonRides.filter(r => {
+      const d = new Date(r.start_date);
+      return d >= wStart && d < wEnd;
+    });
+    weeklyVolumes.push({
+      label: wStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      km:    Math.round(sum(wRides, 'distance') / 10) / 100,
+      rides: wRides.length,
+    });
+  }
+
+  // ── Cumulative by ISO week (this year vs last year) ──
+  const currentWeek = getISOWeek(now);
+  const thisYearByWeek = {}, lastYearByWeek = {};
+  seasonRides.forEach(r => {
+    const w = getISOWeek(new Date(r.start_date));
+    thisYearByWeek[w] = (thisYearByWeek[w] || 0) + (r.distance || 0);
+  });
+  lastYearRides.forEach(r => {
+    const w = getISOWeek(new Date(r.start_date));
+    lastYearByWeek[w] = (lastYearByWeek[w] || 0) + (r.distance || 0);
+  });
+  let cumThis = 0, cumLast = 0;
+  const cumulativeByWeek = [];
+  for (let w = 1; w <= currentWeek; w++) {
+    cumThis += (thisYearByWeek[w] || 0);
+    cumLast += (lastYearByWeek[w] || 0);
+    cumulativeByWeek.push({
+      week:      w,
+      this_year: Math.round(cumThis / 10) / 100,
+      last_year: Math.round(cumLast / 10) / 100,
+    });
+  }
+
+  // ── HR trend (last 10 rides with HR data) ──
+  const hrTrend = seasonRides
+    .filter(r => r.average_heartrate)
+    .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
+    .slice(-10)
+    .map(r => ({
+      date:   r.start_date.split('T')[0],
+      avg_hr: Math.round(r.average_heartrate),
+    }));
+
+  // ── Personal bests ──
+  const longestRide  = seasonRides.reduce((best, r) => r.distance > (best?.distance || 0) ? r : best, null);
+  const mostElevRide = seasonRides.reduce((best, r) => r.total_elevation_gain > (best?.total_elevation_gain || 0) ? r : best, null);
+  const fastestRide  = seasonRides.reduce((best, r) => r.average_speed > (best?.average_speed || 0) ? r : best, null);
+  const rideDates    = [...new Set(seasonRides.map(r => r.start_date.split('T')[0]))].sort();
+  let maxStreak = rideDates.length > 0 ? 1 : 0, streak = 1;
+  for (let i = 1; i < rideDates.length; i++) {
+    const diff = (new Date(rideDates[i]) - new Date(rideDates[i - 1])) / 86400000;
+    if (diff === 1) { streak++; if (streak > maxStreak) maxStreak = streak; }
+    else streak = 1;
+  }
+
+  // ── All season rides (newest first) ──
+  const allRides = seasonRides
+    .sort((a, b) => new Date(b.start_date) - new Date(a.start_date))
+    .map(r => ({
+      date:          r.start_date.split('T')[0],
+      name:          r.name,
+      distance_km:   Math.round(r.distance / 10) / 100,
+      time_minutes:  Math.round(r.moving_time / 60),
+      elevation_m:   Math.round(r.total_elevation_gain),
+      avg_hr:        r.average_heartrate ? Math.round(r.average_heartrate) : null,
+      avg_speed_kmh: Math.round((r.average_speed * 3.6) * 10) / 10,
+    }));
 
   return {
     week: {
-      distance_km:   weekDistKm,
-      time_minutes:  weekTimeMin,
-      elevation_m:   weekElevM,
-      ride_count:    weekRides.length,
+      distance_km:  weekDistKm,
+      time_minutes: weekTimeMin,
+      elevation_m:  weekElevM,
+      ride_count:   weekRides.length,
     },
     last_ride: last ? {
       date:          last.start_date.split('T')[0],
@@ -131,15 +222,26 @@ function buildStravaSummary(weekRides, seasonRides, lastYearRides) {
       avg_speed_kmh: Math.round((last.average_speed * 3.6) * 10) / 10,
     } : null,
     season: {
-      distance_km: Math.round(sum(seasonRides, 'distance') / 10) / 100,
-      ride_count:  seasonRides.length,
-      elevation_m: Math.round(sum(seasonRides, 'total_elevation_gain')),
+      distance_km:  Math.round(sum(seasonRides, 'distance') / 10) / 100,
+      ride_count:   seasonRides.length,
+      elevation_m:  Math.round(sum(seasonRides, 'total_elevation_gain')),
+      total_hours:  seasonTotalHours,
     },
     last_year_same_period: {
       distance_km: Math.round(sum(lastYearRides, 'distance') / 10) / 100,
       ride_count:  lastYearRides.length,
     },
-    weekly_target_km: 175,
+    weekly_target_km:   175,
+    weekly_volumes:     weeklyVolumes,
+    cumulative_by_week: cumulativeByWeek,
+    hr_trend:           hrTrend,
+    personal_bests: {
+      longest_ride_km:     longestRide  ? Math.round(longestRide.distance / 10) / 100 : 0,
+      most_elevation_m:    mostElevRide ? Math.round(mostElevRide.total_elevation_gain) : 0,
+      best_avg_speed_kmh:  fastestRide  ? Math.round((fastestRide.average_speed * 3.6) * 10) / 10 : 0,
+      longest_streak_days: maxStreak,
+    },
+    all_rides: allRides,
   };
 }
 
