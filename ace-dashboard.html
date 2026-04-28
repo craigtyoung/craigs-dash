@@ -2880,6 +2880,12 @@ function renderRideDetail(panel, d) {
     </div>`;
 }
 
+// Event delegation for ride detail rows (avoids IIFE/global scope issues with inline onclick)
+document.addEventListener('click', function(e) {
+  const row = e.target.closest('[data-ride-id]');
+  if (row) toggleRideDetail(row.dataset.rideId);
+});
+
 async function loadCyclingData() {
   destroyCyclingCharts();
   document.getElementById('cycling-loading').style.display = 'block';
@@ -2929,7 +2935,7 @@ async function loadCyclingData() {
       const hrStr  = r.avg_hr      ? ` · ♥ ${r.avg_hr}`      : '';
       const achStr = r.achievements > 0 ? ` · 🏆${r.achievements}` : '';
       return `<div>
-        <div onclick="toggleRideDetail('${r.id}')" style="padding:0.6rem 0;border-bottom:1px solid #1e1e2e;font-size:0.82rem;cursor:pointer;user-select:none">
+        <div data-ride-id="${r.id}" style="padding:0.6rem 0;border-bottom:1px solid #1e1e2e;font-size:0.82rem;cursor:pointer;user-select:none">
           <div style="display:flex;justify-content:space-between;align-items:baseline">
             <span style="font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${safeName(r.name)}</span>
             <span style="color:#f97316;margin-left:0.5rem;white-space:nowrap">${r.distance_km} km</span>
