@@ -2758,6 +2758,128 @@ function toggleCyclingTrends() {
   }
 }
 
+function fmtPace(speedMs) {
+  if (!speedMs || speedMs <= 0) return '—';
+  const secPerKm = 1000 / speedMs;
+  const mm = Math.floor(secPerKm / 60);
+  const ss = String(Math.round(secPerKm % 60)).padStart(2, '0');
+  return `${mm}:${ss}`;
+}
+
+async function toggleRideDetail(id) {
+  const panel = document.getElementById(`ride-detail-${id}`);
+  if (!panel) return;
+  if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+  if (panel.dataset.loaded) { panel.style.display = 'block'; return; }
+
+  panel.style.display = 'block';
+  panel.innerHTML = '<div style="padding:0.75rem 0;text-align:center;color:#666;font-size:0.8rem">Loading…</div>';
+
+  try {
+    const res  = await fetch(`/api/strava/activity/${id}`);
+    const data = await res.json();
+    panel.dataset.loaded = '1';
+    renderRideDetail(panel, data);
+  } catch (e) {
+    panel.innerHTML = '<div style="padding:0.5rem 0;color:#666;font-size:0.8rem">Could not load details</div>';
+  }
+}
+
+function renderRideDetail(panel, d) {
+  const safeStr  = s => (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const avgSpd   = d.average_speed ? `${Math.round(d.average_speed * 3.6 * 10) / 10}` : '—';
+  const maxSpd   = d.max_speed     ? `${Math.round(d.max_speed * 3.6 * 10) / 10}`     : '—';
+  const avgHR    = d.average_heartrate ? Math.round(d.average_heartrate) : null;
+  const maxHR    = d.max_heartrate     ? Math.round(d.max_heartrate)     : null;
+  const calories = d.calories          ? d.calories                      : null;
+  const pauseMin = Math.round((d.elapsed_time - d.moving_time) / 60);
+  const suffer   = d.suffer_score      || null;
+  const achs     = d.achievement_count || 0;
+  const kudos    = d.kudos_count       || 0;
+  const gear     = d.gear              ? d.gear.name : null;
+
+  // Stats grid — only non-null values
+  const statCell = (val, label) =>
+    `<div style="text-align:center">
+      <div style="font-size:1rem;font-weight:700;color:#f97316">${val}</div>
+      <div style="font-size:0.68rem;color:#666;margin-top:0.1rem">${label}</div>
+    </div>`;
+
+  const stats = [
+    statCell(avgSpd, 'avg km/h'),
+    statCell(maxSpd, 'max km/h'),
+    ...(avgHR    ? [statCell(avgHR,    'avg HR')]    : []),
+    ...(maxHR    ? [statCell(maxHR,    'max HR')]    : []),
+    ...(calories ? [statCell(calories, 'kcal')]      : []),
+    ...(pauseMin > 1 ? [statCell(`${pauseMin}m`, 'stopped')] : []),
+  ].join('');
+
+  // Badges
+  const badges = [
+    suffer  ? `<span style="background:#1e1e2e;border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem">😓 Suffer ${suffer}</span>`    : '',
+    achs > 0 ? `<span style="background:#1e1e2e;border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem">🏆 ${achs} PR${achs !== 1 ? 's' : ''}</span>` : '',
+    kudos > 0 ? `<span style="background:#1e1e2e;border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem">👍 ${kudos}</span>`         : '',
+    gear      ? `<span style="background:#1e1e2e;border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem">🚲 ${safeStr(gear)}</span>`  : '',
+  ].filter(Boolean).join('');
+
+  // Per-km splits
+  let splitsHtml = '';
+  if (d.splits_metric && d.splits_metric.length > 0) {
+    const rows = d.splits_metric.map(s => {
+      const pace = fmtPace(s.average_speed);
+      const hr   = s.average_heartrate ? Math.round(s.average_heartrate) : '—';
+      const elev = s.elevation_difference != null
+        ? (s.elevation_difference >= 0 ? `+${Math.round(s.elevation_difference)}` : Math.round(s.elevation_difference))
+        : '—';
+      const elevColor = s.elevation_difference > 0 ? '#f97316' : s.elevation_difference < 0 ? '#2dd4bf' : '#666';
+      return `<tr>
+        <td style="padding:0.25rem 0.4rem;color:#888">${s.split}</td>
+        <td style="padding:0.25rem 0.4rem">${pace}/km</td>
+        <td style="padding:0.25rem 0.4rem">${hr}</td>
+        <td style="padding:0.25rem 0.4rem;color:${elevColor}">${elev}m</td>
+      </tr>`;
+    }).join('');
+    splitsHtml = `
+      <div style="margin-top:0.75rem">
+        <div style="font-size:0.7rem;color:#555;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.35rem">Per-km Splits</div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.78rem">
+          <thead><tr style="color:#555;font-size:0.68rem;border-bottom:1px solid #1e1e2e">
+            <th style="padding:0.2rem 0.4rem;text-align:left;font-weight:400">km</th>
+            <th style="padding:0.2rem 0.4rem;text-align:left;font-weight:400">pace</th>
+            <th style="padding:0.2rem 0.4rem;text-align:left;font-weight:400">HR</th>
+            <th style="padding:0.2rem 0.4rem;text-align:left;font-weight:400">elev</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  // Best efforts
+  let effortsHtml = '';
+  if (d.best_efforts && d.best_efforts.length > 0) {
+    const pills = d.best_efforts.map(e => {
+      const mm = Math.floor(e.elapsed_time / 60);
+      const ss = String(e.elapsed_time % 60).padStart(2, '0');
+      return `<span style="background:#1e1e2e;border-radius:4px;padding:0.2rem 0.5rem;font-size:0.75rem">
+        <span style="color:#888">${safeStr(e.name)}</span> <span style="color:#f97316;font-weight:600">${mm}:${ss}</span>
+      </span>`;
+    }).join('');
+    effortsHtml = `
+      <div style="margin-top:0.75rem">
+        <div style="font-size:0.7rem;color:#555;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.35rem">Best Efforts</div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.35rem">${pills}</div>
+      </div>`;
+  }
+
+  panel.innerHTML = `
+    <div style="background:#13131f;border-radius:8px;padding:0.75rem;margin:0.1rem 0 0.5rem">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-bottom:${badges ? '0.65rem' : '0'}">${stats}</div>
+      ${badges ? `<div style="display:flex;flex-wrap:wrap;gap:0.35rem;padding-top:0.5rem;border-top:1px solid #1e1e2e">${badges}</div>` : ''}
+      ${splitsHtml}
+      ${effortsHtml}
+    </div>`;
+}
+
 async function loadCyclingData() {
   destroyCyclingCharts();
   document.getElementById('cycling-loading').style.display = 'block';
@@ -2802,15 +2924,19 @@ async function loadCyclingData() {
     // ── Ride rows shared helper ──
     const safeName = s => (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const rideRow  = r => {
-      const rHrs  = Math.floor(r.time_minutes / 60);
-      const rMin  = r.time_minutes % 60;
-      const hrStr = r.avg_hr ? ` · ♥ ${r.avg_hr}` : '';
-      return `<div style="padding:0.6rem 0;border-bottom:1px solid #1e1e2e;font-size:0.82rem">
-        <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <span style="font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${safeName(r.name)}</span>
-          <span style="color:#f97316;margin-left:0.5rem;white-space:nowrap">${r.distance_km} km</span>
+      const rHrs   = Math.floor(r.time_minutes / 60);
+      const rMin   = r.time_minutes % 60;
+      const hrStr  = r.avg_hr      ? ` · ♥ ${r.avg_hr}`      : '';
+      const achStr = r.achievements > 0 ? ` · 🏆${r.achievements}` : '';
+      return `<div>
+        <div onclick="toggleRideDetail('${r.id}')" style="padding:0.6rem 0;border-bottom:1px solid #1e1e2e;font-size:0.82rem;cursor:pointer;user-select:none">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <span style="font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${safeName(r.name)}</span>
+            <span style="color:#f97316;margin-left:0.5rem;white-space:nowrap">${r.distance_km} km</span>
+          </div>
+          <div style="color:#666;margin-top:0.15rem">${r.date} · ${rHrs}h ${rMin}m · ${r.elevation_m}m ↑ · ${r.avg_speed_kmh} km/h${hrStr}${achStr}</div>
         </div>
-        <div style="color:#666;margin-top:0.15rem">${r.date} · ${rHrs}h ${rMin}m · ${r.elevation_m}m ↑ · ${r.avg_speed_kmh} km/h${hrStr}</div>
+        <div id="ride-detail-${r.id}" style="display:none"></div>
       </div>`;
     };
 

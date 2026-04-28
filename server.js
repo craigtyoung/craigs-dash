@@ -54,6 +54,8 @@ function readBody(req) {
   });
 }
 
+const _activityCache = new Map();
+
 function stravaRequest(options, postData) {
   return new Promise((resolve, reject) => {
     const req = https.request(options, (res) => {
@@ -197,13 +199,19 @@ function buildStravaSummary(weekRides, seasonRides, lastYearRides) {
   const allRides = seasonRides
     .sort((a, b) => new Date(b.start_date) - new Date(a.start_date))
     .map(r => ({
+      id:            r.id,
       date:          r.start_date.split('T')[0],
       name:          r.name,
       distance_km:   Math.round(r.distance / 10) / 100,
       time_minutes:  Math.round(r.moving_time / 60),
       elevation_m:   Math.round(r.total_elevation_gain),
       avg_hr:        r.average_heartrate ? Math.round(r.average_heartrate) : null,
+      max_hr:        r.max_heartrate     ? Math.round(r.max_heartrate)     : null,
       avg_speed_kmh: Math.round((r.average_speed * 3.6) * 10) / 10,
+      max_speed_kmh: r.max_speed         ? Math.round(r.max_speed * 3.6 * 10) / 10 : null,
+      suffer_score:  r.suffer_score      || null,
+      achievements:  r.achievement_count || 0,
+      kudos:         r.kudos_count       || 0,
     }));
 
   return {
@@ -340,6 +348,32 @@ self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => n
       supabase: error ? 'ERROR: ' + error.message : 'connected',
       supabase_row: data ? 'row exists' : 'row missing',
     });
+    return;
+  }
+
+  // ── Strava activity detail (cached) ──
+  const activityMatch = req.url.match(/^\/api\/strava\/activity\/(\d+)$/);
+  if (activityMatch && req.method === 'GET') {
+    try {
+      const id  = activityMatch[1];
+      const now = Date.now();
+      const TTL = 60 * 60 * 1000; // 1 hour
+      if (_activityCache.has(id) && (now - _activityCache.get(id).ts) < TTL) {
+        return json(res, 200, _activityCache.get(id).data);
+      }
+      const accessToken = await getStravaAccessToken();
+      const activity = await stravaRequest({
+        hostname: 'www.strava.com',
+        path:     `/api/v3/activities/${id}`,
+        method:   'GET',
+        headers:  { Authorization: `Bearer ${accessToken}` },
+      });
+      _activityCache.set(id, { data: activity, ts: now });
+      json(res, 200, activity);
+    } catch (e) {
+      console.error('Strava activity detail error:', e.message);
+      json(res, 500, { error: e.message });
+    }
     return;
   }
 
