@@ -695,6 +695,32 @@ body.light .habit-dot.today.filled { box-shadow: 0 0 0 2px var(--bg-deep), 0 0 0
   font-family: var(--font-mono); font-size: 0.62rem; color: var(--teal);
   min-width: 32px; text-align: right; white-space: nowrap;
 }
+.habit-row.on-fire { border-color: rgba(232, 197, 90, 0.4); }
+.habit-streak.on-fire { color: var(--yellow); }
+
+/* 30-day challenge header */
+.challenge-card {
+  display: flex; align-items: center; gap: 1.25rem; padding: 1.1rem 1.3rem;
+  border-radius: 14px; background: var(--bg-card); border: 1px solid var(--border-subtle);
+  margin-bottom: 1rem;
+}
+.challenge-ring { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
+.challenge-ring svg { transform: rotate(-90deg); width: 64px; height: 64px; }
+.challenge-ring circle { fill: none; stroke-width: 6; }
+.challenge-ring .ring-bg { stroke: var(--border-subtle); }
+.challenge-ring .ring-fg { stroke: var(--teal); stroke-linecap: round; transition: stroke-dashoffset 0.4s ease; }
+.challenge-ring.complete .ring-fg { stroke: var(--yellow); }
+.challenge-ring-label {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600;
+}
+.challenge-info { flex: 1; }
+.challenge-day { font-family: var(--font-display); font-size: 1.3rem; font-weight: 500; }
+.challenge-sub { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-tertiary); margin-top: 0.2rem; }
+.challenge-card.complete { border-color: rgba(232, 197, 90, 0.5); box-shadow: 0 0 24px rgba(232, 197, 90, 0.12); }
+.challenge-card.complete .challenge-sub { color: var(--yellow); }
+@keyframes challenge-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+.challenge-card.complete .challenge-day::after { content: ' \1F525'; animation: challenge-pulse 1.6s ease-in-out infinite; }
 
 /* Sleep quality */
 .sleep-stars { display: flex; gap: 0.4rem; margin-bottom: 1rem; }
@@ -1059,9 +1085,10 @@ body.light .time-group select option { background: #f4f2fc; }
     </div>
   </div>
 
-  <!-- 30-day habit grids -->
+  <!-- 30-day challenge -->
   <div class="habit-grid-section">
-    <div class="slabel">30-Day Habits</div>
+    <div class="slabel">30-Day Reset</div>
+    <div id="challenge-header"></div>
     <div id="habit-grid"></div>
   </div>
 
@@ -2186,12 +2213,58 @@ window.deleteFollowup = deleteFollowup;
    HEALTH
    ─────────────────────────────────────────────────────── */
 var HABITS = [
-  { key: 'breathwork',  name: 'Breathwork' },
-  { key: 'movement',    name: 'Movement' },
+  { key: 'stretch',     name: 'Stretch' },
+  { key: 'walk',        name: 'Walk' },
+  { key: 'supplements', name: 'Supplements' },
+  { key: 'journal',     name: 'Journal' },
   { key: 'meditation',  name: 'Meditation' },
-  { key: 'creative',    name: 'Creative' },
-  { key: 'checkin',     name: 'Check-in' }
+  { key: 'breathwork',  name: 'Wim Hof' },
+  { key: 'rebounder',   name: 'Rebounder' },
+  { key: 'creative',    name: 'Piano/Cubase' },
+  { key: 'share',       name: 'Share/Post' },
+  { key: 'start',       name: 'Morning Start' },
+  { key: 'close',       name: 'Evening Close' }
 ];
+
+/* 30-Day Reset challenge window — update CHALLENGE_START if Craig restarts the challenge */
+var CHALLENGE_START = '2026-10-28';
+
+function getChallengeDay() {
+  var start = new Date(CHALLENGE_START + 'T00:00:00');
+  var today = new Date(todayKey() + 'T00:00:00');
+  var diff = Math.round((today - start) / 86400000) + 1;
+  return Math.max(1, Math.min(30, diff));
+}
+
+function renderChallengeHeader() {
+  var container = document.getElementById('challenge-header');
+  if (!container) return;
+  var healthData = getHealthData();
+  var today = healthData[todayKey()] || {};
+  var habits = today.habits || {};
+  var done = HABITS.filter(function(h) { return habits[h.key]; }).length;
+  var total = HABITS.length;
+  var pct = done / total;
+  var complete = done === total;
+  var day = getChallengeDay();
+
+  var radius = 26, circumference = 2 * Math.PI * radius;
+  var offset = circumference * (1 - pct);
+
+  var html = '<div class="challenge-card' + (complete ? ' complete' : '') + '">';
+  html += '<div class="challenge-ring' + (complete ? ' complete' : '') + '">';
+  html += '<svg viewBox="0 0 64 64">';
+  html += '<circle class="ring-bg" cx="32" cy="32" r="' + radius + '"></circle>';
+  html += '<circle class="ring-fg" cx="32" cy="32" r="' + radius + '" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '"></circle>';
+  html += '</svg>';
+  html += '<div class="challenge-ring-label">' + done + '/' + total + '</div>';
+  html += '</div>';
+  html += '<div class="challenge-info">';
+  html += '<div class="challenge-day">Day ' + day + ' of 30</div>';
+  html += '<div class="challenge-sub">' + (complete ? 'All in. Full day.' : (total - done) + ' left today') + '</div>';
+  html += '</div></div>';
+  container.innerHTML = html;
+}
 
 function getHealthData() { return lsGet('ace_health', {}); }
 
@@ -2231,7 +2304,8 @@ function renderHabitGrid() {
 
   HABITS.forEach(function(habit) {
     var streak = calculateStreak(habit.key, healthData, days);
-    html += '<div class="habit-row">';
+    var onFire = streak >= 3;
+    html += '<div class="habit-row' + (onFire ? ' on-fire' : '') + '">';
     html += '<div class="habit-name">' + habit.name + '</div>';
     html += '<div class="habit-dots">';
     days.forEach(function(day) {
@@ -2245,11 +2319,12 @@ function renderHabitGrid() {
       html += ' title="' + day + '"></div>';
     });
     html += '</div>';
-    html += '<div class="habit-streak">' + (streak > 0 ? streak + 'd' : '-') + '</div>';
+    html += '<div class="habit-streak' + (onFire ? ' on-fire' : '') + '">' + (onFire ? '🔥' : '') + (streak > 0 ? streak + 'd' : '-') + '</div>';
     html += '</div>';
   });
 
   container.innerHTML = html;
+  renderChallengeHeader();
 }
 
 function toggleHabit(habitKey) {
