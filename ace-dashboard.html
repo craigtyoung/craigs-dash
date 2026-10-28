@@ -20,13 +20,13 @@
    ═══════════════════════════════════════════════════════ */
 :root {
   --bg-deep: #0c0b14;
-  --bg-card: rgba(200, 190, 230, 0.07);
-  --bg-card-hover: rgba(200, 190, 230, 0.12);
-  --border-subtle: rgba(200, 190, 230, 0.14);
-  --border-glow: rgba(200, 190, 230, 0.26);
-  --text-primary: #edeaf8;
-  --text-secondary: rgba(237, 234, 248, 0.78);
-  --text-tertiary: rgba(237, 234, 248, 0.50);
+  --bg-card: rgba(200, 190, 230, 0.11);
+  --bg-card-hover: rgba(200, 190, 230, 0.16);
+  --border-subtle: rgba(200, 190, 230, 0.22);
+  --border-glow: rgba(200, 190, 230, 0.36);
+  --text-primary: #f5f3fc;
+  --text-secondary: rgba(245, 243, 252, 0.84);
+  --text-tertiary: rgba(245, 243, 252, 0.64);
   --purple-bright: #c4a1ff;
   --purple-mid: #a07de8;
   --purple-deep: #7c5cbf;
@@ -59,13 +59,13 @@
    ═══════════════════════════════════════════════════════ */
 body.light {
   --bg-deep: #f4f2fc;
-  --bg-card: rgba(255, 255, 255, 0.72);
-  --bg-card-hover: rgba(255, 255, 255, 0.95);
-  --border-subtle: rgba(90, 65, 180, 0.11);
-  --border-glow: rgba(90, 65, 180, 0.24);
-  --text-primary: #1a1630;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 0.98);
+  --border-subtle: rgba(90, 65, 180, 0.16);
+  --border-glow: rgba(90, 65, 180, 0.3);
+  --text-primary: #16132a;
   --text-secondary: #2d2952;
-  --text-tertiary: #5f5b82;
+  --text-tertiary: #504a72;
   --purple-bright: #6d28d9;
   --purple-mid: #7c3aed;
   --purple-deep: #5b21b6;
@@ -110,16 +110,16 @@ body {
 .ambient::before {
   content: ''; position: absolute; top: -40%; left: -40%; width: 180%; height: 180%;
   background:
-    radial-gradient(ellipse 550px 380px at 18% 18%, rgba(196,161,255,0.04) 0%, transparent 70%),
-    radial-gradient(ellipse 400px 350px at 85% 30%, rgba(94,196,196,0.02) 0%, transparent 70%),
-    radial-gradient(ellipse 450px 450px at 80% 55%, rgba(124,92,191,0.025) 0%, transparent 70%),
-    radial-gradient(ellipse 400px 280px at 45% 85%, rgba(196,144,240,0.02) 0%, transparent 70%);
+    radial-gradient(ellipse 550px 380px at 18% 18%, rgba(196,161,255,0.02) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 350px at 85% 30%, rgba(94,196,196,0.012) 0%, transparent 70%),
+    radial-gradient(ellipse 450px 450px at 80% 55%, rgba(124,92,191,0.014) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 280px at 45% 85%, rgba(196,144,240,0.012) 0%, transparent 70%);
   animation: drift 35s ease-in-out infinite alternate;
 }
 .ambient::after {
   content: ''; position: absolute; inset: 0;
   background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  opacity: 0.35;
+  opacity: 0.16;
 }
 body.light .ambient::before {
   background:
@@ -1098,33 +1098,33 @@ body.light .time-group select option { background: #f4f2fc; }
   <!-- Cycling (folded in from the old standalone tab) -->
   <div class="section-gap">
     <div class="slabel">🚴 Cycling</div>
-    <div id="cycling-loading" style="text-align:center;padding:2rem;color:#888">Loading Strava data…</div>
-    <div id="cycling-error" style="display:none;text-align:center;padding:2rem;color:#888">Strava data unavailable</div>
+    <div id="cycling-loading" style="text-align:center;padding:2rem;color:var(--text-tertiary)">Loading Strava data…</div>
+    <div id="cycling-error" style="display:none;text-align:center;padding:2rem;color:var(--text-tertiary)">Strava data unavailable</div>
     <div id="cycling-content" style="display:none">
 
       <!-- Last Ride -->
       <div class="card" id="cycling-last-ride" style="margin-bottom:1rem;display:none">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-          <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Last Ride</h3>
-          <span id="lr-date" style="font-size:0.75rem;color:#666"></span>
+          <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary)">Last Ride</h3>
+          <span id="lr-date" style="font-size:0.75rem;color:var(--text-tertiary)"></span>
         </div>
         <div id="lr-name" style="font-size:0.95rem;font-weight:600;margin-bottom:0.6rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;text-align:center">
           <div>
             <div id="lr-dist" style="font-size:1.2rem;font-weight:700;color:#f97316"></div>
-            <div style="font-size:0.7rem;color:#888">km</div>
+            <div style="font-size:0.7rem;color:var(--text-tertiary)">km</div>
           </div>
           <div>
             <div id="lr-time" style="font-size:1.2rem;font-weight:700;color:#f97316"></div>
-            <div style="font-size:0.7rem;color:#888">time</div>
+            <div style="font-size:0.7rem;color:var(--text-tertiary)">time</div>
           </div>
           <div>
             <div id="lr-speed" style="font-size:1.2rem;font-weight:700;color:#f97316"></div>
-            <div style="font-size:0.7rem;color:#888">km/h</div>
+            <div style="font-size:0.7rem;color:var(--text-tertiary)">km/h</div>
           </div>
           <div>
             <div id="lr-elev" style="font-size:1.2rem;font-weight:700;color:#f97316"></div>
-            <div style="font-size:0.7rem;color:#888">m ↑</div>
+            <div style="font-size:0.7rem;color:var(--text-tertiary)">m ↑</div>
           </div>
         </div>
       </div>
@@ -1132,24 +1132,24 @@ body.light .time-group select option { background: #f4f2fc; }
       <!-- Weekly Progress -->
       <div class="card" style="margin-bottom:1rem">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-          <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">This Week</h3>
-          <span style="color:#888;font-size:0.8rem">/ 175 km</span>
+          <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary)">This Week</h3>
+          <span style="color:var(--text-tertiary);font-size:0.8rem">/ 175 km</span>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
           <span id="cycling-week-dist" style="font-size:1.4rem;font-weight:700"></span>
           <span id="cycling-week-pct" style="font-size:0.85rem;color:#f97316;font-weight:600"></span>
         </div>
-        <div style="background:#1e1e2e;border-radius:6px;height:8px;overflow:hidden">
+        <div style="background:var(--bg-card-hover);border-radius:6px;height:8px;overflow:hidden">
           <div id="cycling-week-bar" style="height:100%;background:linear-gradient(90deg,#f97316,#fb923c);border-radius:6px;transition:width 0.6s ease;width:0%"></div>
         </div>
-        <div id="cycling-week-meta" style="margin-top:0.5rem;font-size:0.8rem;color:#888"></div>
+        <div id="cycling-week-meta" style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-tertiary)"></div>
       </div>
 
       <!-- Recent Rides -->
       <div class="card" style="margin-bottom:1rem">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
-          <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Recent Rides</h3>
-          <button id="rides-toggle" onclick="toggleRidesList()" style="background:#1e1e2e;border:none;color:#888;font-size:0.8rem;padding:0.3rem 0.6rem;border-radius:4px;cursor:pointer"></button>
+          <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary)">Recent Rides</h3>
+          <button id="rides-toggle" onclick="toggleRidesList()" style="background:var(--bg-card-hover);border:none;color:var(--text-tertiary);font-size:0.8rem;padding:0.3rem 0.6rem;border-radius:4px;cursor:pointer"></button>
         </div>
         <div id="recent-rides-list"></div>
         <div id="rides-list" style="display:none"></div>
@@ -1158,21 +1158,21 @@ body.light .time-group select option { background: #f4f2fc; }
       <!-- Trends (collapsible) -->
       <div class="card" style="margin-bottom:1rem;padding:0">
         <div onclick="toggleCyclingTrends()" style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1rem;cursor:pointer">
-          <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Trends</h3>
-          <button id="cycling-trends-btn" style="background:none;border:none;color:#888;font-size:0.8rem;padding:0;cursor:pointer">Show ↓</button>
+          <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary)">Trends</h3>
+          <button id="cycling-trends-btn" style="background:none;border:none;color:var(--text-tertiary);font-size:0.8rem;padding:0;cursor:pointer">Show ↓</button>
         </div>
         <div id="cycling-trends-body" style="display:none;padding:0 1rem 1rem">
           <div style="margin-bottom:0.75rem">
-            <div style="font-size:0.75rem;color:#666;margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.04em">Weekly Volume — 12 Weeks</div>
+            <div style="font-size:0.75rem;color:var(--text-tertiary);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.04em">Weekly Volume — 12 Weeks</div>
             <canvas id="cycling-volume-chart" height="110"></canvas>
           </div>
           <div style="margin-bottom:0.75rem">
-            <div style="font-size:0.75rem;color:#666;margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.04em">2026 vs 2025 Cumulative</div>
+            <div style="font-size:0.75rem;color:var(--text-tertiary);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.04em">2026 vs 2025 Cumulative</div>
             <canvas id="cycling-cumulative-chart" height="110"></canvas>
           </div>
           <div id="cycling-hr-card" style="display:none">
-            <div style="font-size:0.75rem;color:#666;margin-bottom:0.2rem;text-transform:uppercase;letter-spacing:0.04em">HR Trend — Last 10 Rides</div>
-            <div style="font-size:0.72rem;color:#555;margin-bottom:0.4rem">Downward = getting fitter</div>
+            <div style="font-size:0.75rem;color:var(--text-tertiary);margin-bottom:0.2rem;text-transform:uppercase;letter-spacing:0.04em">HR Trend — Last 10 Rides</div>
+            <div style="font-size:0.72rem;color:var(--text-tertiary);margin-bottom:0.4rem">Downward = getting fitter</div>
             <canvas id="cycling-hr-chart" height="90"></canvas>
           </div>
         </div>
@@ -1180,40 +1180,40 @@ body.light .time-group select option { background: #f4f2fc; }
 
       <!-- Season Stats + Bests -->
       <div class="card">
-        <h3 style="margin:0 0 0.75rem;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Season</h3>
+        <h3 style="margin:0 0 0.75rem;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary)">Season</h3>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin-bottom:0.75rem;text-align:center">
           <div>
             <div id="cs-km" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
-            <div style="font-size:0.7rem;color:#888">km</div>
+            <div style="font-size:0.7rem;color:var(--text-tertiary)">km</div>
           </div>
           <div>
             <div id="cs-hrs" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
-            <div style="font-size:0.7rem;color:#888">hrs</div>
+            <div style="font-size:0.7rem;color:var(--text-tertiary)">hrs</div>
           </div>
           <div>
             <div id="cs-elev" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
-            <div style="font-size:0.7rem;color:#888">elev m</div>
+            <div style="font-size:0.7rem;color:var(--text-tertiary)">elev m</div>
           </div>
           <div>
             <div id="cs-rides" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
-            <div style="font-size:0.7rem;color:#888">rides</div>
+            <div style="font-size:0.7rem;color:var(--text-tertiary)">rides</div>
           </div>
         </div>
-        <div style="border-top:1px solid #1e1e2e;padding-top:0.75rem;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
-          <div style="background:#1e1e2e;border-radius:8px;padding:0.6rem">
-            <div style="font-size:0.7rem;color:#888;margin-bottom:0.2rem">🏅 Longest</div>
+        <div style="border-top:1px solid var(--border-subtle);padding-top:0.75rem;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+          <div style="background:var(--bg-card-hover);border-radius:8px;padding:0.6rem">
+            <div style="font-size:0.7rem;color:var(--text-tertiary);margin-bottom:0.2rem">🏅 Longest</div>
             <div id="pb-longest" style="font-size:1rem;font-weight:700"></div>
           </div>
-          <div style="background:#1e1e2e;border-radius:8px;padding:0.6rem">
-            <div style="font-size:0.7rem;color:#888;margin-bottom:0.2rem">⛰ Most Elev</div>
+          <div style="background:var(--bg-card-hover);border-radius:8px;padding:0.6rem">
+            <div style="font-size:0.7rem;color:var(--text-tertiary);margin-bottom:0.2rem">⛰ Most Elev</div>
             <div id="pb-elev" style="font-size:1rem;font-weight:700"></div>
           </div>
-          <div style="background:#1e1e2e;border-radius:8px;padding:0.6rem">
-            <div style="font-size:0.7rem;color:#888;margin-bottom:0.2rem">⚡ Best Speed</div>
+          <div style="background:var(--bg-card-hover);border-radius:8px;padding:0.6rem">
+            <div style="font-size:0.7rem;color:var(--text-tertiary);margin-bottom:0.2rem">⚡ Best Speed</div>
             <div id="pb-speed" style="font-size:1rem;font-weight:700"></div>
           </div>
-          <div style="background:#1e1e2e;border-radius:8px;padding:0.6rem">
-            <div style="font-size:0.7rem;color:#888;margin-bottom:0.2rem">🔥 Best Streak</div>
+          <div style="background:var(--bg-card-hover);border-radius:8px;padding:0.6rem">
+            <div style="font-size:0.7rem;color:var(--text-tertiary);margin-bottom:0.2rem">🔥 Best Streak</div>
             <div id="pb-streak" style="font-size:1rem;font-weight:700"></div>
           </div>
         </div>
@@ -2859,7 +2859,7 @@ async function toggleRideDetail(id) {
   if (panel.dataset.loaded) { panel.style.display = 'block'; return; }
 
   panel.style.display = 'block';
-  panel.innerHTML = '<div style="padding:0.75rem 0;text-align:center;color:#666;font-size:0.8rem">Loading…</div>';
+  panel.innerHTML = '<div style="padding:0.75rem 0;text-align:center;color:var(--text-tertiary);font-size:0.8rem">Loading…</div>';
 
   try {
     const res  = await fetch(`/api/strava/activity/${id}`);
@@ -2867,7 +2867,7 @@ async function toggleRideDetail(id) {
     panel.dataset.loaded = '1';
     renderRideDetail(panel, data);
   } catch (e) {
-    panel.innerHTML = '<div style="padding:0.5rem 0;color:#666;font-size:0.8rem">Could not load details</div>';
+    panel.innerHTML = '<div style="padding:0.5rem 0;color:var(--text-tertiary);font-size:0.8rem">Could not load details</div>';
   }
 }
 
@@ -2888,7 +2888,7 @@ function renderRideDetail(panel, d) {
   const statCell = (val, label) =>
     `<div style="text-align:center">
       <div style="font-size:1rem;font-weight:700;color:#f97316">${val}</div>
-      <div style="font-size:0.68rem;color:#666;margin-top:0.1rem">${label}</div>
+      <div style="font-size:0.68rem;color:var(--text-tertiary);margin-top:0.1rem">${label}</div>
     </div>`;
 
   const stats = [
@@ -2902,10 +2902,10 @@ function renderRideDetail(panel, d) {
 
   // Badges
   const badges = [
-    suffer  ? `<span style="background:#1e1e2e;border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem">😓 Suffer ${suffer}</span>`    : '',
-    achs > 0 ? `<span style="background:#1e1e2e;border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem">🏆 ${achs} PR${achs !== 1 ? 's' : ''}</span>` : '',
-    kudos > 0 ? `<span style="background:#1e1e2e;border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem">👍 ${kudos}</span>`         : '',
-    gear      ? `<span style="background:#1e1e2e;border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem">🚲 ${safeStr(gear)}</span>`  : '',
+    suffer  ? `<span style="background:var(--bg-card-hover);border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem">😓 Suffer ${suffer}</span>`    : '',
+    achs > 0 ? `<span style="background:var(--bg-card-hover);border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem">🏆 ${achs} PR${achs !== 1 ? 's' : ''}</span>` : '',
+    kudos > 0 ? `<span style="background:var(--bg-card-hover);border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem">👍 ${kudos}</span>`         : '',
+    gear      ? `<span style="background:var(--bg-card-hover);border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem">🚲 ${safeStr(gear)}</span>`  : '',
   ].filter(Boolean).join('');
 
   // Per-km splits
@@ -2919,7 +2919,7 @@ function renderRideDetail(panel, d) {
         : '—';
       const elevColor = s.elevation_difference > 0 ? '#f97316' : s.elevation_difference < 0 ? '#2dd4bf' : '#666';
       return `<tr>
-        <td style="padding:0.25rem 0.4rem;color:#888">${s.split}</td>
+        <td style="padding:0.25rem 0.4rem;color:var(--text-tertiary)">${s.split}</td>
         <td style="padding:0.25rem 0.4rem">${pace}/km</td>
         <td style="padding:0.25rem 0.4rem">${hr}</td>
         <td style="padding:0.25rem 0.4rem;color:${elevColor}">${elev}m</td>
@@ -2927,9 +2927,9 @@ function renderRideDetail(panel, d) {
     }).join('');
     splitsHtml = `
       <div style="margin-top:0.75rem">
-        <div style="font-size:0.7rem;color:#555;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.35rem">Per-km Splits</div>
+        <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.35rem">Per-km Splits</div>
         <table style="width:100%;border-collapse:collapse;font-size:0.78rem">
-          <thead><tr style="color:#555;font-size:0.68rem;border-bottom:1px solid #1e1e2e">
+          <thead><tr style="color:var(--text-tertiary);font-size:0.68rem;border-bottom:1px solid var(--border-subtle)">
             <th style="padding:0.2rem 0.4rem;text-align:left;font-weight:400">km</th>
             <th style="padding:0.2rem 0.4rem;text-align:left;font-weight:400">pace</th>
             <th style="padding:0.2rem 0.4rem;text-align:left;font-weight:400">HR</th>
@@ -2946,13 +2946,13 @@ function renderRideDetail(panel, d) {
     const pills = d.best_efforts.map(e => {
       const mm = Math.floor(e.elapsed_time / 60);
       const ss = String(e.elapsed_time % 60).padStart(2, '0');
-      return `<span style="background:#1e1e2e;border-radius:4px;padding:0.2rem 0.5rem;font-size:0.75rem">
-        <span style="color:#888">${safeStr(e.name)}</span> <span style="color:#f97316;font-weight:600">${mm}:${ss}</span>
+      return `<span style="background:var(--bg-card-hover);border-radius:4px;padding:0.2rem 0.5rem;font-size:0.75rem">
+        <span style="color:var(--text-tertiary)">${safeStr(e.name)}</span> <span style="color:#f97316;font-weight:600">${mm}:${ss}</span>
       </span>`;
     }).join('');
     effortsHtml = `
       <div style="margin-top:0.75rem">
-        <div style="font-size:0.7rem;color:#555;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.35rem">Best Efforts</div>
+        <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.35rem">Best Efforts</div>
         <div style="display:flex;flex-wrap:wrap;gap:0.35rem">${pills}</div>
       </div>`;
   }
@@ -2960,7 +2960,7 @@ function renderRideDetail(panel, d) {
   panel.innerHTML = `
     <div style="background:#13131f;border-radius:8px;padding:0.75rem;margin:0.1rem 0 0.5rem">
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-bottom:${badges ? '0.65rem' : '0'}">${stats}</div>
-      ${badges ? `<div style="display:flex;flex-wrap:wrap;gap:0.35rem;padding-top:0.5rem;border-top:1px solid #1e1e2e">${badges}</div>` : ''}
+      ${badges ? `<div style="display:flex;flex-wrap:wrap;gap:0.35rem;padding-top:0.5rem;border-top:1px solid var(--border-subtle)">${badges}</div>` : ''}
       ${splitsHtml}
       ${effortsHtml}
     </div>`;
@@ -3021,12 +3021,12 @@ async function loadCyclingData() {
       const hrStr  = r.avg_hr      ? ` · ♥ ${r.avg_hr}`      : '';
       const achStr = r.achievements > 0 ? ` · 🏆${r.achievements}` : '';
       return `<div>
-        <div data-ride-id="${r.id}" style="padding:0.6rem 0;border-bottom:1px solid #1e1e2e;font-size:0.82rem;cursor:pointer;user-select:none">
+        <div data-ride-id="${r.id}" style="padding:0.6rem 0;border-bottom:1px solid var(--border-subtle);font-size:0.82rem;cursor:pointer;user-select:none">
           <div style="display:flex;justify-content:space-between;align-items:baseline">
             <span style="font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${safeName(r.name)}</span>
             <span style="color:#f97316;margin-left:0.5rem;white-space:nowrap">${r.distance_km} km</span>
           </div>
-          <div style="color:#666;margin-top:0.15rem">${r.date} · ${rHrs}h ${rMin}m · ${r.elevation_m}m ↑ · ${r.avg_speed_kmh} km/h${hrStr}${achStr}</div>
+          <div style="color:var(--text-tertiary);margin-top:0.15rem">${r.date} · ${rHrs}h ${rMin}m · ${r.elevation_m}m ↑ · ${r.avg_speed_kmh} km/h${hrStr}${achStr}</div>
         </div>
         <div id="ride-detail-${r.id}" style="display:none"></div>
       </div>`;
@@ -3050,8 +3050,8 @@ async function loadCyclingData() {
       responsive: true,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: '#666', font: { size: 10 } }, grid: { color: '#1e1e2e' } },
-        y: { ticks: { color: '#666', font: { size: 10 } }, grid: { color: '#1e1e2e' } },
+        x: { ticks: { color: '#8d89a3', font: { size: 10 } }, grid: { color: '#262438' } },
+        y: { ticks: { color: '#8d89a3', font: { size: 10 } }, grid: { color: '#262438' } },
       },
     };
 
@@ -3074,7 +3074,7 @@ async function loadCyclingData() {
         ...chartDefaults,
         scales: {
           ...chartDefaults.scales,
-          y: { ...chartDefaults.scales.y, title: { display: true, text: 'km', color: '#666' } },
+          y: { ...chartDefaults.scales.y, title: { display: true, text: 'km', color: '#8d89a3' } },
         },
       },
     });
@@ -3112,12 +3112,12 @@ async function loadCyclingData() {
         plugins: {
           legend: {
             display: true,
-            labels: { color: '#888', boxWidth: 20, font: { size: 11 } },
+            labels: { color: '#a8a4c0', boxWidth: 20, font: { size: 11 } },
           },
         },
         scales: {
           ...chartDefaults.scales,
-          y: { ...chartDefaults.scales.y, title: { display: true, text: 'cumulative km', color: '#666' } },
+          y: { ...chartDefaults.scales.y, title: { display: true, text: 'cumulative km', color: '#8d89a3' } },
         },
       },
     });
@@ -3145,7 +3145,7 @@ async function loadCyclingData() {
             ...chartDefaults.scales,
             y: {
               ...chartDefaults.scales.y,
-              title: { display: true, text: 'avg HR (bpm)', color: '#666' },
+              title: { display: true, text: 'avg HR (bpm)', color: '#8d89a3' },
               suggestedMin: Math.min(...data.hr_trend.map(r => r.avg_hr)) - 10,
             },
           },
