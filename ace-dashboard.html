@@ -718,6 +718,8 @@ body.light .habit-dot.today.filled { box-shadow: 0 0 0 2px var(--bg-deep), 0 0 0
 .challenge-day { font-family: var(--font-display); font-size: 1.3rem; font-weight: 500; }
 .challenge-sub { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-tertiary); margin-top: 0.2rem; }
 .challenge-card.complete { border-color: rgba(232, 197, 90, 0.5); box-shadow: 0 0 24px rgba(232, 197, 90, 0.12); }
+.challenge-card.clickable { cursor: pointer; transition: border-color 0.2s, transform 0.15s; }
+.challenge-card.clickable:hover { border-color: var(--purple-mid); transform: translateY(-1px); }
 .challenge-card.complete .challenge-sub { color: var(--yellow); }
 @keyframes challenge-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
 .challenge-card.complete .challenge-day::after { content: ' \1F525'; animation: challenge-pulse 1.6s ease-in-out infinite; }
@@ -892,7 +894,6 @@ body.light .time-group select option { background: #f4f2fc; }
       <button class="nav-tab" data-tab="outreach">Outreach</button>
       <button class="nav-tab" data-tab="health">Health</button>
       <button class="nav-tab" data-tab="wisdom">Wisdom</button>
-      <button class="nav-tab" data-tab="cycling">🚴 Cycling</button>
     </div>
     <div class="nav-right">
       <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">&#9790;</button>
@@ -915,7 +916,6 @@ body.light .time-group select option { background: #f4f2fc; }
 <div class="more-drawer" id="more-drawer">
   <div class="more-drawer-grid">
     <button class="more-drawer-btn gold" onclick="switchTab('wisdom');closeMoreDrawer()">&#10022; Wisdom</button>
-    <button class="more-drawer-btn" onclick="switchTab('cycling');closeMoreDrawer()">🚴 Cycling</button>
     <button class="more-drawer-btn" onclick="toggleTheme();closeMoreDrawer()">&#9790; Theme</button>
   </div>
 </div>
@@ -939,6 +939,9 @@ body.light .time-group select option { background: #f4f2fc; }
       <svg viewBox="0 0 200 200" id="clock-svg"></svg>
     </div>
   </div>
+
+  <!-- 30-Day Reset — leads the day -->
+  <div id="challenge-header-today"></div>
 
   <!-- Two-column grid -->
   <div class="today-grid">
@@ -1092,6 +1095,133 @@ body.light .time-group select option { background: #f4f2fc; }
     <div id="habit-grid"></div>
   </div>
 
+  <!-- Cycling (folded in from the old standalone tab) -->
+  <div class="section-gap">
+    <div class="slabel">🚴 Cycling</div>
+    <div id="cycling-loading" style="text-align:center;padding:2rem;color:#888">Loading Strava data…</div>
+    <div id="cycling-error" style="display:none;text-align:center;padding:2rem;color:#888">Strava data unavailable</div>
+    <div id="cycling-content" style="display:none">
+
+      <!-- Last Ride -->
+      <div class="card" id="cycling-last-ride" style="margin-bottom:1rem;display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+          <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Last Ride</h3>
+          <span id="lr-date" style="font-size:0.75rem;color:#666"></span>
+        </div>
+        <div id="lr-name" style="font-size:0.95rem;font-weight:600;margin-bottom:0.6rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;text-align:center">
+          <div>
+            <div id="lr-dist" style="font-size:1.2rem;font-weight:700;color:#f97316"></div>
+            <div style="font-size:0.7rem;color:#888">km</div>
+          </div>
+          <div>
+            <div id="lr-time" style="font-size:1.2rem;font-weight:700;color:#f97316"></div>
+            <div style="font-size:0.7rem;color:#888">time</div>
+          </div>
+          <div>
+            <div id="lr-speed" style="font-size:1.2rem;font-weight:700;color:#f97316"></div>
+            <div style="font-size:0.7rem;color:#888">km/h</div>
+          </div>
+          <div>
+            <div id="lr-elev" style="font-size:1.2rem;font-weight:700;color:#f97316"></div>
+            <div style="font-size:0.7rem;color:#888">m ↑</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weekly Progress -->
+      <div class="card" style="margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+          <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">This Week</h3>
+          <span style="color:#888;font-size:0.8rem">/ 175 km</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+          <span id="cycling-week-dist" style="font-size:1.4rem;font-weight:700"></span>
+          <span id="cycling-week-pct" style="font-size:0.85rem;color:#f97316;font-weight:600"></span>
+        </div>
+        <div style="background:#1e1e2e;border-radius:6px;height:8px;overflow:hidden">
+          <div id="cycling-week-bar" style="height:100%;background:linear-gradient(90deg,#f97316,#fb923c);border-radius:6px;transition:width 0.6s ease;width:0%"></div>
+        </div>
+        <div id="cycling-week-meta" style="margin-top:0.5rem;font-size:0.8rem;color:#888"></div>
+      </div>
+
+      <!-- Recent Rides -->
+      <div class="card" style="margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+          <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Recent Rides</h3>
+          <button id="rides-toggle" onclick="toggleRidesList()" style="background:#1e1e2e;border:none;color:#888;font-size:0.8rem;padding:0.3rem 0.6rem;border-radius:4px;cursor:pointer"></button>
+        </div>
+        <div id="recent-rides-list"></div>
+        <div id="rides-list" style="display:none"></div>
+      </div>
+
+      <!-- Trends (collapsible) -->
+      <div class="card" style="margin-bottom:1rem;padding:0">
+        <div onclick="toggleCyclingTrends()" style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1rem;cursor:pointer">
+          <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Trends</h3>
+          <button id="cycling-trends-btn" style="background:none;border:none;color:#888;font-size:0.8rem;padding:0;cursor:pointer">Show ↓</button>
+        </div>
+        <div id="cycling-trends-body" style="display:none;padding:0 1rem 1rem">
+          <div style="margin-bottom:0.75rem">
+            <div style="font-size:0.75rem;color:#666;margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.04em">Weekly Volume — 12 Weeks</div>
+            <canvas id="cycling-volume-chart" height="110"></canvas>
+          </div>
+          <div style="margin-bottom:0.75rem">
+            <div style="font-size:0.75rem;color:#666;margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.04em">2026 vs 2025 Cumulative</div>
+            <canvas id="cycling-cumulative-chart" height="110"></canvas>
+          </div>
+          <div id="cycling-hr-card" style="display:none">
+            <div style="font-size:0.75rem;color:#666;margin-bottom:0.2rem;text-transform:uppercase;letter-spacing:0.04em">HR Trend — Last 10 Rides</div>
+            <div style="font-size:0.72rem;color:#555;margin-bottom:0.4rem">Downward = getting fitter</div>
+            <canvas id="cycling-hr-chart" height="90"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Season Stats + Bests -->
+      <div class="card">
+        <h3 style="margin:0 0 0.75rem;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Season</h3>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin-bottom:0.75rem;text-align:center">
+          <div>
+            <div id="cs-km" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
+            <div style="font-size:0.7rem;color:#888">km</div>
+          </div>
+          <div>
+            <div id="cs-hrs" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
+            <div style="font-size:0.7rem;color:#888">hrs</div>
+          </div>
+          <div>
+            <div id="cs-elev" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
+            <div style="font-size:0.7rem;color:#888">elev m</div>
+          </div>
+          <div>
+            <div id="cs-rides" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
+            <div style="font-size:0.7rem;color:#888">rides</div>
+          </div>
+        </div>
+        <div style="border-top:1px solid #1e1e2e;padding-top:0.75rem;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+          <div style="background:#1e1e2e;border-radius:8px;padding:0.6rem">
+            <div style="font-size:0.7rem;color:#888;margin-bottom:0.2rem">🏅 Longest</div>
+            <div id="pb-longest" style="font-size:1rem;font-weight:700"></div>
+          </div>
+          <div style="background:#1e1e2e;border-radius:8px;padding:0.6rem">
+            <div style="font-size:0.7rem;color:#888;margin-bottom:0.2rem">⛰ Most Elev</div>
+            <div id="pb-elev" style="font-size:1rem;font-weight:700"></div>
+          </div>
+          <div style="background:#1e1e2e;border-radius:8px;padding:0.6rem">
+            <div style="font-size:0.7rem;color:#888;margin-bottom:0.2rem">⚡ Best Speed</div>
+            <div id="pb-speed" style="font-size:1rem;font-weight:700"></div>
+          </div>
+          <div style="background:#1e1e2e;border-radius:8px;padding:0.6rem">
+            <div style="font-size:0.7rem;color:#888;margin-bottom:0.2rem">🔥 Best Streak</div>
+            <div id="pb-streak" style="font-size:1rem;font-weight:700"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Sleep quality -->
   <div class="section-gap">
     <div class="slabel">Sleep Quality</div>
@@ -1172,130 +1302,6 @@ body.light .time-group select option { background: #f4f2fc; }
   </div>
 </div>
 
-<div class="tab-pane" id="pane-cycling">
-  <div id="cycling-loading" style="text-align:center;padding:2rem;color:#888">Loading Strava data…</div>
-  <div id="cycling-error" style="display:none;text-align:center;padding:2rem;color:#888">Strava data unavailable</div>
-  <div id="cycling-content" style="display:none">
-
-    <!-- Last Ride -->
-    <div class="card" id="cycling-last-ride" style="margin-bottom:1rem;display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-        <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Last Ride</h3>
-        <span id="lr-date" style="font-size:0.75rem;color:#666"></span>
-      </div>
-      <div id="lr-name" style="font-size:0.95rem;font-weight:600;margin-bottom:0.6rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;text-align:center">
-        <div>
-          <div id="lr-dist" style="font-size:1.2rem;font-weight:700;color:#f97316"></div>
-          <div style="font-size:0.7rem;color:#888">km</div>
-        </div>
-        <div>
-          <div id="lr-time" style="font-size:1.2rem;font-weight:700;color:#f97316"></div>
-          <div style="font-size:0.7rem;color:#888">time</div>
-        </div>
-        <div>
-          <div id="lr-speed" style="font-size:1.2rem;font-weight:700;color:#f97316"></div>
-          <div style="font-size:0.7rem;color:#888">km/h</div>
-        </div>
-        <div>
-          <div id="lr-elev" style="font-size:1.2rem;font-weight:700;color:#f97316"></div>
-          <div style="font-size:0.7rem;color:#888">m ↑</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Weekly Progress -->
-    <div class="card" style="margin-bottom:1rem">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-        <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">This Week</h3>
-        <span style="color:#888;font-size:0.8rem">/ 175 km</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-        <span id="cycling-week-dist" style="font-size:1.4rem;font-weight:700"></span>
-        <span id="cycling-week-pct" style="font-size:0.85rem;color:#f97316;font-weight:600"></span>
-      </div>
-      <div style="background:#1e1e2e;border-radius:6px;height:8px;overflow:hidden">
-        <div id="cycling-week-bar" style="height:100%;background:linear-gradient(90deg,#f97316,#fb923c);border-radius:6px;transition:width 0.6s ease;width:0%"></div>
-      </div>
-      <div id="cycling-week-meta" style="margin-top:0.5rem;font-size:0.8rem;color:#888"></div>
-    </div>
-
-    <!-- Recent Rides -->
-    <div class="card" style="margin-bottom:1rem">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
-        <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Recent Rides</h3>
-        <button id="rides-toggle" onclick="toggleRidesList()" style="background:#1e1e2e;border:none;color:#888;font-size:0.8rem;padding:0.3rem 0.6rem;border-radius:4px;cursor:pointer"></button>
-      </div>
-      <div id="recent-rides-list"></div>
-      <div id="rides-list" style="display:none"></div>
-    </div>
-
-    <!-- Trends (collapsible) -->
-    <div class="card" style="margin-bottom:1rem;padding:0">
-      <div onclick="toggleCyclingTrends()" style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1rem;cursor:pointer">
-        <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Trends</h3>
-        <button id="cycling-trends-btn" style="background:none;border:none;color:#888;font-size:0.8rem;padding:0;cursor:pointer">Show ↓</button>
-      </div>
-      <div id="cycling-trends-body" style="display:none;padding:0 1rem 1rem">
-        <div style="margin-bottom:0.75rem">
-          <div style="font-size:0.75rem;color:#666;margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.04em">Weekly Volume — 12 Weeks</div>
-          <canvas id="cycling-volume-chart" height="110"></canvas>
-        </div>
-        <div style="margin-bottom:0.75rem">
-          <div style="font-size:0.75rem;color:#666;margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.04em">2026 vs 2025 Cumulative</div>
-          <canvas id="cycling-cumulative-chart" height="110"></canvas>
-        </div>
-        <div id="cycling-hr-card" style="display:none">
-          <div style="font-size:0.75rem;color:#666;margin-bottom:0.2rem;text-transform:uppercase;letter-spacing:0.04em">HR Trend — Last 10 Rides</div>
-          <div style="font-size:0.72rem;color:#555;margin-bottom:0.4rem">Downward = getting fitter</div>
-          <canvas id="cycling-hr-chart" height="90"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Season Stats + Bests -->
-    <div class="card">
-      <h3 style="margin:0 0 0.75rem;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:#888">Season</h3>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin-bottom:0.75rem;text-align:center">
-        <div>
-          <div id="cs-km" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
-          <div style="font-size:0.7rem;color:#888">km</div>
-        </div>
-        <div>
-          <div id="cs-hrs" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
-          <div style="font-size:0.7rem;color:#888">hrs</div>
-        </div>
-        <div>
-          <div id="cs-elev" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
-          <div style="font-size:0.7rem;color:#888">elev m</div>
-        </div>
-        <div>
-          <div id="cs-rides" style="font-size:1.1rem;font-weight:700;color:#f97316"></div>
-          <div style="font-size:0.7rem;color:#888">rides</div>
-        </div>
-      </div>
-      <div style="border-top:1px solid #1e1e2e;padding-top:0.75rem;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
-        <div style="background:#1e1e2e;border-radius:8px;padding:0.6rem">
-          <div style="font-size:0.7rem;color:#888;margin-bottom:0.2rem">🏅 Longest</div>
-          <div id="pb-longest" style="font-size:1rem;font-weight:700"></div>
-        </div>
-        <div style="background:#1e1e2e;border-radius:8px;padding:0.6rem">
-          <div style="font-size:0.7rem;color:#888;margin-bottom:0.2rem">⛰ Most Elev</div>
-          <div id="pb-elev" style="font-size:1rem;font-weight:700"></div>
-        </div>
-        <div style="background:#1e1e2e;border-radius:8px;padding:0.6rem">
-          <div style="font-size:0.7rem;color:#888;margin-bottom:0.2rem">⚡ Best Speed</div>
-          <div id="pb-speed" style="font-size:1rem;font-weight:700"></div>
-        </div>
-        <div style="background:#1e1e2e;border-radius:8px;padding:0.6rem">
-          <div style="font-size:0.7rem;color:#888;margin-bottom:0.2rem">🔥 Best Streak</div>
-          <div id="pb-streak" style="font-size:1rem;font-weight:700"></div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
 
 
 <!-- ═══════════════════════════════════════════════════════
@@ -1514,8 +1520,8 @@ function switchTab(tab) {
   });
   // Special handling for wisdom tab
   if (tab === 'wisdom') initPinScreen();
-  // Load cycling data when tab opens
-  if (tab === 'cycling') loadCyclingData();
+  // Load cycling data when Health tab opens (cycling folded into Health, 2026-10-28)
+  if (tab === 'health') loadCyclingData();
 }
 window.switchTab = switchTab;
 
@@ -2236,8 +2242,8 @@ function getChallengeDay() {
   return Math.max(1, Math.min(30, diff));
 }
 
-function renderChallengeHeader() {
-  var container = document.getElementById('challenge-header');
+function renderChallengeHeader(containerId, linkToHealth) {
+  var container = document.getElementById(containerId || 'challenge-header');
   if (!container) return;
   var healthData = getHealthData();
   var today = healthData[todayKey()] || {};
@@ -2251,7 +2257,7 @@ function renderChallengeHeader() {
   var radius = 26, circumference = 2 * Math.PI * radius;
   var offset = circumference * (1 - pct);
 
-  var html = '<div class="challenge-card' + (complete ? ' complete' : '') + '">';
+  var html = '<div class="challenge-card' + (complete ? ' complete' : '') + (linkToHealth ? ' clickable' : '') + '"' + (linkToHealth ? ' onclick="switchTab(\'health\')"' : '') + '>';
   html += '<div class="challenge-ring' + (complete ? ' complete' : '') + '">';
   html += '<svg viewBox="0 0 64 64">';
   html += '<circle class="ring-bg" cx="32" cy="32" r="' + radius + '"></circle>';
@@ -2261,9 +2267,14 @@ function renderChallengeHeader() {
   html += '</div>';
   html += '<div class="challenge-info">';
   html += '<div class="challenge-day">Day ' + day + ' of 30</div>';
-  html += '<div class="challenge-sub">' + (complete ? 'All in. Full day.' : (total - done) + ' left today') + '</div>';
+  html += '<div class="challenge-sub">' + (complete ? 'All in. Full day.' : (total - done) + ' left today') + (linkToHealth ? ' &middot; View full reset &#8594;' : '') + '</div>';
   html += '</div></div>';
   container.innerHTML = html;
+}
+
+function renderChallengeHeaders() {
+  renderChallengeHeader('challenge-header-today', true);
+  renderChallengeHeader('challenge-header', false);
 }
 
 function getHealthData() { return lsGet('ace_health', {}); }
@@ -2324,7 +2335,7 @@ function renderHabitGrid() {
   });
 
   container.innerHTML = html;
-  renderChallengeHeader();
+  renderChallengeHeaders();
 }
 
 function toggleHabit(habitKey) {
